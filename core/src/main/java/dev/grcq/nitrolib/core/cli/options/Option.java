@@ -1,5 +1,7 @@
 package dev.grcq.nitrolib.core.cli.options;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;

@@ -1,6 +1,6 @@
 package dev.grcq.nitrolib.core.cli.options;
 
-import dev.grcq.nitrolib.core.utils.Util;
+import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Setter;
 
 import java.lang.reflect.Field;
@@ -14,9 +14,13 @@ public class OptionParser {
     private static boolean silent = false;
 
     public static void parse(IOptions instance, String[] args) {
-        List<String> commands = new ArrayList<>();
+        List<String> usedOptions = new ArrayList<>();
         for (int i = 0; i < args.length; i++) {
             String arg = args[i];
+            if (usedOptions.contains(arg))
+                LogUtil.error("Duplicated option: --" + arg, 1);
+
+            boolean found = false;
             for (Field field : instance.getClass().getDeclaredFields()) {
                 Option option = field.getAnnotation(Option.class);
                 if (option == null) continue;
@@ -26,25 +30,34 @@ public class OptionParser {
                 if (names.length == 0 && shortNames.length == 0) throw new IllegalArgumentException("No names provided for option");
 
                 OptionValue value = option.value();
-
                 if (arg.startsWith("--")) {
                     String name = arg.substring(2);
-                    setField(instance, args, i, arg, field, names, value, name);
+                    if (setField(instance, args, i, arg, field, names, value, name)) {
+                        i++;
+                    }
+                    found = true;
+                    break;
                 } else if (arg.startsWith("-")) {
                     String name = arg.substring(1);
-                    setField(instance, args, i, arg, field, shortNames, value, name);
+                    if (setField(instance, args, i, arg, field, shortNames, value, name)) {
+                        i++;
+                    }
+                    found = true;
+                    break;
                 } else {
-                    commands.add(arg);
+                    if (!silent) LogUtil.error("Invalid option: " + arg, 1);
                 }
             }
+
+            if (found) usedOptions.add(arg);
         }
     }
 
-    private static void setField(IOptions instance, String[] args, int i, String arg, Field field, String[] shortNames, OptionValue value, String name) {
+    private static boolean setField(IOptions instance, String[] args, int i, String arg, Field field, String[] shortNames, OptionValue value, String name) {
         if (Arrays.asList(shortNames).contains(name)) {
             if (i + 1 >= args.length && value != OptionValue.BOOLEAN) {
                 if (!silent) System.out.println("No value provided for option: " + arg);
-                return;
+                return true;
             }
 
             try {
@@ -52,14 +65,16 @@ public class OptionParser {
                 if (value == OptionValue.BOOLEAN) {
                     boolean bool = (boolean) field.get(instance);
                     field.set(instance, !bool);
-                    return;
+                    return false;
                 }
 
-                field.set(instance, value.getType().cast(args[i + 1]));
+                field.set(instance, value.cast(args[i + 1]));
+                return true;
             } catch (IllegalAccessException e) {
-                Util.handleException("Failed to set field value", e);
+                LogUtil.handleException("Failed to set field value", e);
             }
         }
+        return true;
     }
 
     public static String getHelp(IOptions instance) {

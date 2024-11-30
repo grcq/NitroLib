@@ -3,7 +3,7 @@ package dev.grcq.nitrolib.core.peer;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.grcq.nitrolib.core.Constants;
-import dev.grcq.nitrolib.core.utils.Util;
+import dev.grcq.nitrolib.core.utils.LogUtil;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -50,7 +50,7 @@ public class Peer {
             String response = in.readLine();
             return response.equals(Constants.NO_RESPONSE) ? null : JsonParser.parseString(response).getAsJsonObject();
         } catch (Exception e) {
-            Util.handleException("Failed to send packet", e);
+            LogUtil.handleException("Failed to send packet", e);
             return null;
         }
     }
