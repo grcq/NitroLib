@@ -1,10 +1,13 @@
 package dev.grcq.nitrolib.core;
 
 import com.google.common.base.Preconditions;
+import dev.grcq.nitrolib.core.annotations.Validate;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
 import dev.grcq.nitrolib.core.config.TestConfig;
+import dev.grcq.nitrolib.core.database.Condition;
+import dev.grcq.nitrolib.core.database.RelationalDatabase;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 
@@ -14,6 +17,9 @@ public class NitroLib {
     @Getter
     private static NitroOptions options;
 
+    @Validate(regex = "[a-zA-Z]+")
+    private static String test;
+
     public static void init(Class<?> mainClass) {
         init(mainClass, new String[0]);
     }
@@ -21,6 +27,8 @@ public class NitroLib {
     public static void init(Class<?> mainClass, String[] args) {
         Preconditions.checkState(!initialized, "NitroLib is already initialized");
         initialized = true;
+
+        test = "6";
 
         options = new NitroOptions();
         OptionParser.parse(options, args);
@@ -40,6 +48,16 @@ public class NitroLib {
         LogUtil.info("NitroLib initialized!");
 
         LogUtil.debug(TestConfig.TEST);
+        LogUtil.debug(RelationalDatabase.QueryBuilder.builder()
+                .select("*")
+                .from("test")
+                .where(new Condition[]{
+                        new Condition("id", Condition.Operators.EQUALS, 1),
+                        new Condition("name", Condition.Operators.EQUALS, "test")
+                })
+                .orderBy("id", true)
+                .limit(1)
+                .build());
     }
 
     public static void main(String[] args) {

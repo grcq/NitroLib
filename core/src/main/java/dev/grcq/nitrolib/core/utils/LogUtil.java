@@ -1,12 +1,10 @@
 package dev.grcq.nitrolib.core.utils;
 
 import dev.grcq.nitrolib.core.NitroLib;
+import lombok.experimental.UtilityClass;
 
+@UtilityClass
 public class LogUtil {
-
-    public LogUtil() {
-        throw new IllegalStateException("Utility class");
-    }
 
     public static void handleException(String message, Exception e) {
         // todo: implement

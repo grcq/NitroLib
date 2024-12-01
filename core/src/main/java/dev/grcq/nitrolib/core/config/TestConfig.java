@@ -1,6 +1,6 @@
 package dev.grcq.nitrolib.core.config;
 
-@Configuration("config.json")
+@Configuration(value = "config.json", createIfNotExists = true)
 public class TestConfig {
 
     @ConfigField("test")

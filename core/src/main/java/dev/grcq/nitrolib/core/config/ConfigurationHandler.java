@@ -5,9 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import dev.grcq.nitrolib.core.Constants;
 import dev.grcq.nitrolib.core.utils.LogUtil;
+import dev.grcq.nitrolib.core.utils.Util;
 import lombok.var;
 import org.reflections.Reflections;
 
+import java.util.Arrays;
 import java.util.Set;
 
 public class ConfigurationHandler {
@@ -36,7 +38,14 @@ public class ConfigurationHandler {
 
             JsonObject configurationObject = configType.read(fileName);
             if (configurationObject == null) {
-                throw new IllegalArgumentException("Failed to read configuration file: " + fileName);
+                if (!configuration.createIfNotExists()) throw new IllegalArgumentException("Failed to read configuration file: " + fileName);
+
+                LogUtil.verbose("Configuration file does not exist, creating...");
+                JsonObject object = Util.parseClassAsJsonWithDefaults(configurationClass);
+                if (object == null) throw new IllegalArgumentException("Failed to parse configuration class to JsonObject");
+
+                configType.write(fileName, object);
+                configurationObject = object;
             }
 
             LogUtil.verbose("Configuration file loaded and file parsed to a JsonObject.");

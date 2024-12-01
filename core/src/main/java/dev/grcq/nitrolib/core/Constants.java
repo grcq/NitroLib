@@ -7,7 +7,9 @@ import com.google.gson.LongSerializationPolicy;
 import lombok.Getter;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.Path;
 
 public interface Constants {
@@ -34,7 +36,7 @@ public interface Constants {
                         data = inputStream.read();
                     }
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    return null;
                 }
 
                 return GSON.fromJson(content.toString(), JsonObject.class);
@@ -42,7 +44,20 @@ public interface Constants {
 
             @Override
             public void write(String file, JsonObject content) {
+                try {
+                    File f = new File(file);
+                    if (!f.exists()) {
+                        if (f.getParentFile() != null) f.getParentFile().mkdirs();
+                        f.createNewFile();
+                    }
 
+                    try (FileOutputStream fos = new FileOutputStream(f)) {
+                        fos.write(GSON_PPT.toJson(content).getBytes());
+                        fos.flush();
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         },
         YAML("yaml", "yml") {
