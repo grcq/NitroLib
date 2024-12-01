@@ -4,6 +4,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import dev.grcq.nitrolib.core.Constants;
 import dev.grcq.nitrolib.core.utils.LogUtil;
+import lombok.Getter;
+import lombok.Setter;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -14,30 +18,60 @@ import java.util.Map;
 
 public class Peer {
 
-    private final ServerSocket server;
+    private boolean running = false;
+    @Setter @Getter private String host;
+    @Setter @Getter private int port;
+
+    private ServerSocket server;
     private final Map<String, PacketListenRunnable> listeners;
 
-    public Peer(String host, int port) throws Exception {
-        this.server = new ServerSocket();
-        this.server.bind(new InetSocketAddress(host, port));
-
+    public Peer(String host, int port) {
+        this.host = host;
+        this.port = port;
         this.listeners = new HashMap<>();
     }
 
-    public Peer(int port) throws Exception {
+    public Peer(int port) {
         this("localhost", port);
     }
 
+    /**
+     * Close the peer server
+     * @throws Exception If the server could not be closed
+     */
     public void close() throws Exception {
+        this.running = false;
         this.server.close();
+        this.server = null;
     }
 
-    public Peer listen(String packetId, PacketListenRunnable runnable) {
+    /**
+     * Listen for a packet
+     * @param packetId The ID of the packet to listen for
+     * @param runnable The runnable to run when the packet is received
+     * @return The peer instance
+     */
+    public Peer listen(@NotNull String packetId, @NotNull PacketListenRunnable runnable) {
         this.listeners.put(packetId, runnable);
         return this;
     }
 
-    public JsonObject send(String host, int port, IPacket packet) {
+    /**
+     * Clear all listeners
+     */
+    public void clearListeners() {
+        this.listeners.clear();
+    }
+
+    /**
+     * Send a packet to a host
+     * @param host The IP address to send the packet to
+     * @param port The port to send the packet to
+     * @param packet The packet to send
+     * @return The response from the host, or null if there was no response
+     */
+    @Nullable
+    public JsonObject send(@NotNull String host, int port, @NotNull IPacket packet) {
         try (Socket socket = new Socket(host, port)) {
             OutputStream outputStream = socket.getOutputStream();
             PrintWriter out = new PrintWriter(outputStream);
@@ -55,9 +89,18 @@ public class Peer {
         }
     }
 
-    public void start() {
+    /**
+     * Start the peer server in a thread
+     * @throws IOException If the server could not be started
+     */
+    public void start() throws IOException {
+        this.running = true;
+
+        this.server = new ServerSocket();
+        this.server.bind(new InetSocketAddress(host, port));
+
         new Thread(() -> {
-            while (true) {
+            while (running) {
                 try {
                     Socket socket = this.server.accept();
                     new Thread(() -> {

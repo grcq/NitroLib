@@ -22,7 +22,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Set;
 
-@AutoService(Processor.class)
+//@AutoService(Processor.class)
 @SupportedAnnotationTypes("dev.grcq.nitrolib.core.annotations.Timing")
 public class TimingProcessor extends AbstractProcessor {
 
