@@ -1,3 +1,10 @@
 {
-    "test": "test"
+    "id": "core",
+    "display-name": "Core",
+    "glow": true,
+    "child": {
+        "id": "core-child",
+        "display-name": "Core Child",
+        "glow": false
+    }
 }

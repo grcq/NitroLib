@@ -8,8 +8,14 @@ import dev.grcq.nitrolib.core.config.ConfigurationHandler;
 import dev.grcq.nitrolib.core.config.TestConfig;
 import dev.grcq.nitrolib.core.database.Condition;
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
+import dev.grcq.nitrolib.core.serialization.FileDeserializer;
+import dev.grcq.nitrolib.core.serialization.test.TestClass;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
+
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
 
 public class NitroLib {
 
@@ -58,6 +64,15 @@ public class NitroLib {
                 .orderBy("id", true)
                 .limit(1)
                 .build());
+        URL url = NitroLib.class.getResource("/config.json");
+        try {
+            File file = new File(url.toURI());
+            FileDeserializer fileDeserializer = new FileDeserializer();
+            TestClass testClass = fileDeserializer.deserialize(file, TestClass.class);
+            System.out.println(testClass);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
