@@ -54,4 +54,19 @@ public abstract class FileElement {
 
     public abstract FileElement copy();
 
+    public String toJson() {
+        return toJson(0);
+    }
+
+    public String toJson(int indentLevel) {
+        return toString();
+    }
+
+    public String toYaml() {
+        return toYaml(0);
+    }
+
+    public String toYaml(int indentLevel) {
+        return toString();
+    }
 }

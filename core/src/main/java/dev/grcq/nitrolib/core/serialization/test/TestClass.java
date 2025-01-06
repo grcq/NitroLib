@@ -20,7 +20,10 @@ public class TestClass {
     @SerializeField("glow")
     private boolean glow;
 
-    @SerializeField(value = "child")
+    @SerializeField("child")
     private TestClass child;
+
+    @SerializeField("list")
+    private List<String> list;
 
 }

@@ -1,6 +1,8 @@
 package dev.grcq.nitrolib.core.serialization;
 
+import com.google.common.collect.Lists;
 import com.google.gson.*;
+import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import dev.grcq.nitrolib.core.annotations.serialization.Serializable;
 import dev.grcq.nitrolib.core.annotations.serialization.SerializeField;
@@ -9,20 +11,29 @@ import dev.grcq.nitrolib.core.serialization.elements.*;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 import lombok.Setter;
+import org.yaml.snakeyaml.Yaml;
+import sun.security.pkcs11.wrapper.CK_LOCKMUTEX;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.InputStream;
 import java.lang.reflect.Field;
-import java.util.Objects;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.*;
 
 public class FileDeserializer {
 
     private Gson GSON = new GsonBuilder().setLongSerializationPolicy(LongSerializationPolicy.STRING).create();
-    @Setter
-    @Getter
-    private AdapterContext context = new AdapterContext();
 
     public <T> T deserialize(File file, Class<T> clazz) throws Exception {
+        return deserialize(file, clazz, AdapterContext.DEFAULT);
+    }
+
+    public <T> T deserialize(File file, Class<T> clazz, AdapterContext context) throws Exception {
         if (!clazz.isAnnotationPresent(Serializable.class))
             throw new Exception("Class is not serializable");
 
@@ -30,16 +41,16 @@ public class FileDeserializer {
         String extension = name.substring(name.lastIndexOf(".") + 1);
         switch (extension) {
             case "json":
-                return deserializeJson(file, clazz);
+                return deserializeJson(file, clazz, context);
             case "yml":
             case "yaml":
-                return deserializeYaml(file, clazz);
+                return deserializeYaml(file, clazz, context);
             default:
                 throw new Exception("Unsupported file extension");
         }
     }
 
-    private <T> T deserializeJson(File file, Class<T> clazz) {
+    private <T> T deserializeJson(File file, Class<T> clazz, AdapterContext context) {
         try (FileReader fileReader = new FileReader(file)) {
             JsonReader reader = new JsonReader(fileReader);
             JsonObject object = GSON.fromJson(reader, JsonObject.class);
@@ -48,7 +59,7 @@ public class FileDeserializer {
             Serializable annotation = clazz.getAnnotation(Serializable.class);
             String key = annotation.value();
 
-            return deserializeJson((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz);
+            return deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -56,7 +67,7 @@ public class FileDeserializer {
         return null;
     }
 
-    private <T> T deserializeJson(FileObject fileObject, Class<T> clazz) throws Exception {
+    private <T> T deserializeContent(FileObject fileObject, Class<T> clazz, AdapterContext context) throws Exception {
         Field[] fields = clazz.getDeclaredFields();
         T instance = clazz.newInstance();
         for (Field field : fields) {
@@ -70,47 +81,79 @@ public class FileDeserializer {
             }
 
             field.setAccessible(true);
-            switch (field.getType().getSimpleName()) {
-                case "int":
-                case "Integer":
-                    field.set(instance, fileObject.asInt(key));
-                    break;
-                case "long":
-                case "Long":
-                    field.set(instance, fileObject.asLong(key));
-                    break;
-                case "float":
-                case "Float":
-                    field.set(instance, fileObject.asFloat(key));
-                    break;
-                case "double":
-                case "Double":
-                    field.set(instance, fileObject.asDouble(key));
-                    break;
-                case "boolean":
-                case "Boolean":
-                    field.set(instance, fileObject.asBoolean(key));
-                    break;
-                case "String":
-                    field.set(instance, fileObject.asString(key));
-                    break;
-                default:
-                    Object value;
-                    if (field.getType().isAnnotationPresent(Serializable.class)) {
-                        value = deserializeJson(fileObject.get(key).asFileObject(), field.getType());
-                    } else {
-                        value = context.deserialize(fileObject.get(key), field.getType());
-                    }
-                    field.set(instance, value);
-                    break;
-            }
+            field.set(instance, deserializeContent(fileObject.get(key), field.getType(), context));
             field.setAccessible(false);
         }
 
         return instance;
     }
 
-    private static FileElement parseJson(JsonElement element) {
+    private Object deserializeContent(FileElement element, Class<?> type, AdapterContext context) throws Exception {
+        switch (type.getSimpleName()) {
+            case "int":
+            case "Integer":
+                return element.asFilePrimitive().asInt();
+            case "long":
+            case "Long":
+                return element.asFilePrimitive().asLong();
+            case "float":
+            case "Float":
+                return element.asFilePrimitive().asFloat();
+            case "double":
+            case "Double":
+                return element.asFilePrimitive().asDouble();
+            case "boolean":
+            case "Boolean":
+                return element.asFilePrimitive().asBoolean();
+            case "String":
+                return element.asFilePrimitive().asString();
+            default:
+                if (Iterable.class.isAssignableFrom(type)) {
+                    FileArray array = element.asFileArray();
+                    Collection<Object> collection = (type == List.class || type == Collection.class ? Lists.newArrayList() :
+                            (type == Set.class ? new HashSet<>() : (Collection<Object>) type.getDeclaredConstructor().newInstance()));
+
+                    Type genericType = null;
+
+                    Type[] genericInterfaces = type.getGenericInterfaces();
+                    for (Type iface : genericInterfaces) {
+                        if (iface instanceof ParameterizedType) {
+                            ParameterizedType parameterizedType = (ParameterizedType) iface;
+
+                            // Ensure it matches List or a subclass
+                            if (List.class.isAssignableFrom((Class<?>) parameterizedType.getRawType())) {
+                                genericType = parameterizedType.getActualTypeArguments()[0]; // Get type argument
+                                break;
+                            }
+                        }
+                    }
+
+                    if (genericType == null && type.getGenericSuperclass() instanceof ParameterizedType) {
+                        ParameterizedType superType = (ParameterizedType) type.getGenericSuperclass();
+                        genericType = superType.getActualTypeArguments()[0];
+                    }
+
+                    if (genericType == null) {
+                        throw new IllegalArgumentException("Unable to determine generic type for: " + type);
+                    }
+
+                    System.out.println("Generic Type: " + genericType);
+                    for (FileElement fileElement : array) {
+                        Object obj = deserializeContent(fileElement, (Class<?>) genericType, context);
+                        collection.add(obj);
+                    }
+                    return collection;
+                } else if (type.getSimpleName().equals("FileElement") || type.getSuperclass().getSimpleName().equals("FileElement")) {
+                    return element;
+                } else if (type.isAnnotationPresent(Serializable.class)) {
+                    return deserializeContent(element.asFileObject(), type, context);
+                } else {
+                    return context.deserialize(element, type);
+                }
+        }
+    }
+
+    private FileElement parseJson(JsonElement element) {
         if (element.isJsonObject()) {
             JsonObject object = element.getAsJsonObject();
             FileObject fileObject = new FileObject();
@@ -143,8 +186,47 @@ public class FileDeserializer {
         return null;
     }
 
-    private static <T> T deserializeYaml(File file, Class<T> clazz) {
+    private <T> T deserializeYaml(File file, Class<T> clazz, AdapterContext context) {
+        Yaml yaml = new Yaml();
+        try (InputStream in = Files.newInputStream(file.toPath())) {
+            Map<String, Object> object = yaml.load(in);
+            FileObject fileObject = new FileObject();
+            for (Map.Entry<String, Object> entry : object.entrySet()) {
+                fileObject.add(entry.getKey(), parseYaml(entry.getValue()));
+            }
+
+            Serializable annotation = clazz.getAnnotation(Serializable.class);
+            String key = annotation.value();
+            return deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context);
+        } catch (Exception e) {
+            LogUtil.handleException("Failed to deserialize yaml file", e);
+        }
         return null;
+    }
+
+    private FileElement parseYaml(Object object) {
+        if (object instanceof Map) {
+            FileObject fileObject = new FileObject();
+            Map<String, Object> map = (Map<String, Object>) object;
+            for (Map.Entry<String, Object> entry : map.entrySet()) {
+                fileObject.add(entry.getKey(), parseYaml(entry.getValue()));
+            }
+            return fileObject;
+        }
+
+        if (object instanceof Iterable) {
+            FileArray fileArray = new FileArray();
+            for (Object value : (Iterable<?>) object) {
+                fileArray.add(parseYaml(value));
+            }
+            return fileArray;
+        }
+
+        if (object instanceof Boolean) return new FilePrimitive((Boolean) object);
+        if (object instanceof Number) return new FilePrimitive((Number) object);
+        if (object instanceof String) return new FilePrimitive((String) object);
+        if (object instanceof Character) return new FilePrimitive((Character) object);
+        return new FileNull();
     }
 
 }

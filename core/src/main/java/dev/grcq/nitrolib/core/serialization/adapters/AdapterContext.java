@@ -12,6 +12,7 @@ import java.util.Map;
 
 public class AdapterContext {
 
+    public static final AdapterContext DEFAULT = new AdapterContext();
     private final Map<Class<?>, Deserializer<?>> DESERIALIZERS = new HashMap<>();
     private final Map<Class<?>, Serializer<?>> SERIALIZERS = new HashMap<>();
 

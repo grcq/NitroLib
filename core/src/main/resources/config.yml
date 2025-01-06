@@ -1,0 +1,10 @@
+id: "c"
+display-name: "Core"
+glow: true
+list:
+  - "hi"
+  - "no"
+child:
+  id: "c-c"
+  display-name: "Core Child"
+  glow: false

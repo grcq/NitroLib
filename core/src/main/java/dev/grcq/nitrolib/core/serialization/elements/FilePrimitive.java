@@ -122,6 +122,8 @@ public class FilePrimitive extends FileElement {
 
     @Override
     public String toString() {
+        if (isString()) return String.format("\"%s\"", value);
+        if (isChar()) return String.format("'%s'", value);
         return value.toString();
     }
 }
