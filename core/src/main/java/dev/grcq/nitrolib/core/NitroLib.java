@@ -10,6 +10,7 @@ import dev.grcq.nitrolib.core.config.TestConfig;
 import dev.grcq.nitrolib.core.database.Condition;
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
 import dev.grcq.nitrolib.core.serialization.FileDeserializer;
+import dev.grcq.nitrolib.core.serialization.FileSerializer;
 import dev.grcq.nitrolib.core.serialization.elements.FileArray;
 import dev.grcq.nitrolib.core.serialization.elements.FileElement;
 import dev.grcq.nitrolib.core.serialization.elements.FileObject;
@@ -29,13 +30,23 @@ public class NitroLib {
     @Getter
     private static NitroOptions options;
 
+    // TODO
     @Validate(regex = "[a-zA-Z]+")
     private static String test;
 
+    /**
+     * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
+     * @param mainClass The main class of your project
+     */
     public static void init(Class<?> mainClass) {
         init(mainClass, new String[0]);
     }
 
+    /**
+     * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
+     * @param mainClass The main class of your project
+     * @param args The arguments passed to the main method, or your custom arguments
+     */
     public static void init(Class<?> mainClass, String[] args) {
         Preconditions.checkState(!initialized, "NitroLib is already initialized");
         initialized = true;
@@ -58,50 +69,6 @@ public class NitroLib {
         LogUtil.info("Handlers loaded!");
 
         LogUtil.info("NitroLib initialized!");
-
-        LogUtil.debug(TestConfig.TEST);
-        LogUtil.debug(RelationalDatabase.QueryBuilder.builder()
-                .select("*")
-                .from("test")
-                .where(new Condition[]{
-                        new Condition("id", Condition.Operators.EQUALS, 1),
-                        new Condition("name", Condition.Operators.EQUALS, "test")
-                })
-                .orderBy("id", true)
-                .limit(1)
-                .build());
-        URL url = NitroLib.class.getResource("/config.yml");
-        try {
-            File file = new File(url.toURI());
-            FileDeserializer fileDeserializer = new FileDeserializer();
-            TestClass testClass = fileDeserializer.deserialize(file, TestClass.class);
-            System.out.println(testClass);
-
-            FileObject fileObject = new FileObject();
-            fileObject.add("test", "test");
-            fileObject.add("test2", true);
-
-            FileObject fileObject2 = new FileObject();
-            fileObject2.add("acb", "test");
-            fileObject2.add("hgfg", "fghf");
-
-            FileElement copy = fileObject2.copy();
-
-            FileArray fileArray = new FileArray();
-
-            FileArray fileArray2 = new FileArray();
-            fileArray2.add("test");
-            fileArray2.add("test2");
-
-            fileArray.add(fileArray2);
-            fileArray.add(fileArray2);
-
-            fileObject2.add("array", fileArray);
-            fileObject.add("test3", fileObject2);
-            //System.out.println(fileObject.toYaml());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     public static void main(String[] args) {

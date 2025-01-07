@@ -62,7 +62,13 @@ public class FileSerializer {
             }
         }
 
-        return null;
+        if (!key.isEmpty()) {
+            FileObject obj = new FileObject();
+            obj.add(key, fileObject);
+            return obj;
+        }
+
+        return fileObject;
     }
 
     private FileElement parse(Class<?> type, Object value, Field field, SerializeField serializeField, AdapterContext context) {
@@ -110,6 +116,17 @@ public class FileSerializer {
     }
 
     public <T> void serialize(T object, File file, AdapterContext context) {
+        if (!file.exists()) {
+            try {
+                File parent = file.getParentFile();
+                if (parent != null && !parent.exists()) parent.mkdirs();
+
+                file.createNewFile();
+            } catch (IOException e) {
+                LogUtil.error("Failed to create file: " + file.getName());
+                return;
+            }
+        }
         FileObject fileObject = serialize(object, context);
         String name = file.getName();
         String extension = name.substring(name.lastIndexOf(".") + 1);

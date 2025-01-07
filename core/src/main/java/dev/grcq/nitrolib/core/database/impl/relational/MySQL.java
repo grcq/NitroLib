@@ -48,4 +48,9 @@ public class MySQL implements RelationalDatabase {
     public void delete(String table, String where) {
 
     }
+
+    @Override
+    public <T> T selectOne(String table, String where) {
+        return null;
+    }
 }

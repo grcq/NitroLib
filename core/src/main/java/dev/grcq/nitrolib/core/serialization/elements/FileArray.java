@@ -87,6 +87,8 @@ public class FileArray extends FileElement implements Iterable<FileElement> {
 
     @Override
     public String toJson(int indentLevel) {
+        if (elements.isEmpty()) return "[]";
+
         StringBuilder builder = new StringBuilder("[\n");
         String indent = StringUtils.repeat("\t", indentLevel);
         String endIndent = StringUtils.repeat("\t", indentLevel - 1);
@@ -114,6 +116,8 @@ public class FileArray extends FileElement implements Iterable<FileElement> {
 
     @Override
     public String toYaml(int indentLevel) {
+        if (elements.isEmpty()) return "[]";
+
         StringBuilder builder = new StringBuilder("\n");
         String indent = StringUtils.repeat("\t", indentLevel);
 

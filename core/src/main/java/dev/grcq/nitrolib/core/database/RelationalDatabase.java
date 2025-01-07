@@ -14,6 +14,7 @@ public interface RelationalDatabase extends IDatabase {
     void createTable(String name);
     void dropTable(String name);
 
+    <T> T selectOne(String table, String where);
     <T> void insert(String table, T object);
     <T> void update(String table, T object, String where);
     void delete(String table, String where);

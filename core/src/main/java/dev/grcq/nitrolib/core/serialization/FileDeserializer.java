@@ -81,14 +81,21 @@ public class FileDeserializer {
             }
 
             field.setAccessible(true);
-            field.set(instance, deserializeContent(fileObject.get(key), field.getType(), context));
+            Class<?> type = null;
+            Type genericType = field.getGenericType();
+            if (genericType instanceof ParameterizedType) {
+                Type[] types = ((ParameterizedType) genericType).getActualTypeArguments();
+                if (types.length > 0) type = (Class<?>) types[0];
+            }
+
+            field.set(instance, deserializeContent(fileObject.get(key), field.getType(), type, context));
             field.setAccessible(false);
         }
 
         return instance;
     }
 
-    private Object deserializeContent(FileElement element, Class<?> type, AdapterContext context) throws Exception {
+    private Object deserializeContent(FileElement element, Class<?> type, Class<?> genericType, AdapterContext context) throws Exception {
         switch (type.getSimpleName()) {
             case "int":
             case "Integer":
@@ -108,38 +115,13 @@ public class FileDeserializer {
             case "String":
                 return element.asFilePrimitive().asString();
             default:
-                if (Iterable.class.isAssignableFrom(type)) {
+                if (Iterable.class.isAssignableFrom(type) && genericType != null) {
                     FileArray array = element.asFileArray();
                     Collection<Object> collection = (type == List.class || type == Collection.class ? Lists.newArrayList() :
                             (type == Set.class ? new HashSet<>() : (Collection<Object>) type.getDeclaredConstructor().newInstance()));
 
-                    Type genericType = null;
-
-                    Type[] genericInterfaces = type.getGenericInterfaces();
-                    for (Type iface : genericInterfaces) {
-                        if (iface instanceof ParameterizedType) {
-                            ParameterizedType parameterizedType = (ParameterizedType) iface;
-
-                            // Ensure it matches List or a subclass
-                            if (List.class.isAssignableFrom((Class<?>) parameterizedType.getRawType())) {
-                                genericType = parameterizedType.getActualTypeArguments()[0]; // Get type argument
-                                break;
-                            }
-                        }
-                    }
-
-                    if (genericType == null && type.getGenericSuperclass() instanceof ParameterizedType) {
-                        ParameterizedType superType = (ParameterizedType) type.getGenericSuperclass();
-                        genericType = superType.getActualTypeArguments()[0];
-                    }
-
-                    if (genericType == null) {
-                        throw new IllegalArgumentException("Unable to determine generic type for: " + type);
-                    }
-
-                    System.out.println("Generic Type: " + genericType);
                     for (FileElement fileElement : array) {
-                        Object obj = deserializeContent(fileElement, (Class<?>) genericType, context);
+                        Object obj = deserializeContent(fileElement, genericType, null, context);
                         collection.add(obj);
                     }
                     return collection;

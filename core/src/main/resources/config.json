@@ -2,6 +2,10 @@
     "id": "core",
     "display-name": "Core",
     "glow": true,
+    "list": [
+        "hello",
+        "world"
+    ],
     "child": {
         "id": "core-child",
         "display-name": "Core Child",
