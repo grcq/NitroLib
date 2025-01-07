@@ -1,14 +1,14 @@
 {
-    "id": "core",
-    "display-name": "Core",
-    "glow": true,
-    "list": [
-        "hello",
-        "world"
-    ],
-    "child": {
-        "id": "core-child",
-        "display-name": "Core Child",
-        "glow": false
-    }
+    "crates": [
+        {
+            "id": "crate1",
+            "display-name": "Crate 1",
+            "glow": true
+        },
+        {
+            "id": "crate2",
+            "display-name": "Crate 2",
+            "glow": false
+        }
+    ]
 }

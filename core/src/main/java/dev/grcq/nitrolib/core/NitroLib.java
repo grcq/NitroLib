@@ -2,6 +2,7 @@ package dev.grcq.nitrolib.core;
 
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonArray;
+import com.google.gson.reflect.TypeToken;
 import dev.grcq.nitrolib.core.annotations.Validate;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;

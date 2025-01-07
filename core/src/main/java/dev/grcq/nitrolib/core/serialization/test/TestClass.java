@@ -10,7 +10,7 @@ import java.util.List;
 
 @ToString
 @Data
-@Serializable
+@Serializable("crates")
 public class TestClass {
 
     @SerializeField("id")

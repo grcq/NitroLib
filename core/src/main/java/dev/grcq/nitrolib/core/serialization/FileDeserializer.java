@@ -29,11 +29,11 @@ public class FileDeserializer {
 
     private Gson GSON = new GsonBuilder().setLongSerializationPolicy(LongSerializationPolicy.STRING).create();
 
-    public <T> T deserialize(File file, Class<T> clazz) throws Exception {
+    public <T> List<T> deserialize(File file, Class<T> clazz) throws Exception {
         return deserialize(file, clazz, AdapterContext.DEFAULT);
     }
 
-    public <T> T deserialize(File file, Class<T> clazz, AdapterContext context) throws Exception {
+    public <T> List<T> deserialize(File file, Class<T> clazz, AdapterContext context) throws Exception {
         if (!clazz.isAnnotationPresent(Serializable.class))
             throw new Exception("Class is not serializable");
 
@@ -50,7 +50,7 @@ public class FileDeserializer {
         }
     }
 
-    private <T> T deserializeJson(File file, Class<T> clazz, AdapterContext context) {
+    private <T> List<T> deserializeJson(File file, Class<T> clazz, AdapterContext context) {
         try (FileReader fileReader = new FileReader(file)) {
             JsonReader reader = new JsonReader(fileReader);
             JsonObject object = GSON.fromJson(reader, JsonObject.class);
@@ -58,8 +58,21 @@ public class FileDeserializer {
 
             Serializable annotation = clazz.getAnnotation(Serializable.class);
             String key = annotation.value();
+            if (!key.isEmpty()) {
+                if (!fileObject.has(key)) return null;
 
-            return deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context);
+                FileElement fileElement = fileObject.get(key);
+                if (fileElement.isFileArray()) {
+                    List<T> list = Lists.newArrayList();
+                    for (FileElement element : (FileArray) fileElement) {
+                        if (!element.isFileObject()) throw new Exception("Element is not a file object");
+                        list.add(deserializeContent(element.asFileObject(), clazz, context));
+                    }
+                    return list;
+                }
+            }
+
+            return Lists.newArrayList(deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context));
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -168,7 +181,7 @@ public class FileDeserializer {
         return null;
     }
 
-    private <T> T deserializeYaml(File file, Class<T> clazz, AdapterContext context) {
+    private <T> List<T> deserializeYaml(File file, Class<T> clazz, AdapterContext context) {
         Yaml yaml = new Yaml();
         try (InputStream in = Files.newInputStream(file.toPath())) {
             Map<String, Object> object = yaml.load(in);
@@ -179,7 +192,21 @@ public class FileDeserializer {
 
             Serializable annotation = clazz.getAnnotation(Serializable.class);
             String key = annotation.value();
-            return deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context);
+            if (!key.isEmpty()) {
+                if (!fileObject.has(key)) return null;
+
+                FileElement fileElement = fileObject.get(key);
+                if (fileElement.isFileArray()) {
+                    List<T> list = Lists.newArrayList();
+                    for (FileElement element : (FileArray) fileElement) {
+                        if (!element.isFileObject()) throw new Exception("Element is not a file object");
+                        list.add(deserializeContent(element.asFileObject(), clazz, context));
+                    }
+                    return list;
+                }
+            }
+
+            return Lists.newArrayList(deserializeContent((key.isEmpty() ? fileObject : fileObject.get(key).asFileObject()), clazz, context));
         } catch (Exception e) {
             LogUtil.handleException("Failed to deserialize yaml file", e);
         }
