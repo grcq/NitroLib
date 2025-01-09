@@ -2,6 +2,7 @@ package dev.grcq.nitrolib.core.serialization;
 
 import com.google.common.collect.Lists;
 import com.google.gson.*;
+import com.google.gson.internal.LazilyParsedNumber;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import dev.grcq.nitrolib.core.annotations.serialization.Serializable;
@@ -152,8 +153,9 @@ public class FileDeserializer {
         if (element.isJsonObject()) {
             JsonObject object = element.getAsJsonObject();
             FileObject fileObject = new FileObject();
-            for (String key : object.keySet()) {
-                JsonElement value = object.get(key);
+            for (Map.Entry<String, JsonElement> entry : object.entrySet()) {
+                String key = entry.getKey();
+                JsonElement value = entry.getValue();
                 fileObject.add(key, parseJson(value));
             }
 
@@ -172,8 +174,34 @@ public class FileDeserializer {
         if (element.isJsonPrimitive()) {
             JsonPrimitive primitive = element.getAsJsonPrimitive();
             if (primitive.isBoolean()) return new FilePrimitive(primitive.getAsBoolean());
-            if (primitive.isNumber()) return new FilePrimitive(primitive.getAsNumber());
             if (primitive.isString()) return new FilePrimitive(primitive.getAsString());
+            if (primitive.isNumber()) {
+                Number number = primitive.getAsNumber();
+                if (number instanceof Integer) return new FilePrimitive(number.intValue());
+                if (number instanceof Long) return new FilePrimitive(number.longValue());
+                if (number instanceof Float) return new FilePrimitive(number.floatValue());
+                if (number instanceof Double) return new FilePrimitive(number.doubleValue());
+                if (number instanceof LazilyParsedNumber) {
+                    String value = number.toString();
+                    if (value.contains(".")) {
+                        try {
+                            return new FilePrimitive(Float.parseFloat(value));
+                        } catch (NumberFormatException e) {
+                            try {
+                                return new FilePrimitive(Double.parseDouble(value));
+                            } catch (NumberFormatException ex) {
+                                return new FilePrimitive(0);
+                            }
+                        }
+                    }
+
+                    try {
+                        return new FilePrimitive(Integer.parseInt(value));
+                    } catch (NumberFormatException e) {
+                        return new FilePrimitive(Long.parseLong(value));
+                    }
+                }
+            }
             if (primitive.isJsonNull()) return new FileNull();
         }
 

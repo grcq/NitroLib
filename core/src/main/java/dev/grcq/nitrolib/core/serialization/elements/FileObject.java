@@ -206,7 +206,7 @@ public class FileObject extends FileElement implements Iterable<Map.Entry<String
     @Override
     public String toYaml(int indentLevel) {
         StringBuilder builder = new StringBuilder();
-        String indent = StringUtils.repeat("\t", indentLevel);
+        String indent = StringUtils.repeat(" ", indentLevel);
 
         for (Map.Entry<String, FileElement> entry : elements.entrySet()) {
             FileElement element = entry.getValue();

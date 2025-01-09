@@ -35,7 +35,7 @@ public class FilePrimitive extends FileElement {
         throw new IllegalStateException("Value is not a string");
     }
 
-    public Boolean asBoolean() {
+    public boolean asBoolean() {
         if (isBoolean()) {
             return (boolean) value;
         }
@@ -64,11 +64,15 @@ public class FilePrimitive extends FileElement {
             return (float) value;
         }
 
+        if (isDouble()) {
+            return (float) (double) value;
+        }
+
         throw new IllegalStateException("Value is not a number");
     }
 
     public double asDouble() {
-        if (isDouble()) {
+        if (isNumber()) {
             return (double) value;
         }
 

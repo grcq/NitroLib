@@ -95,9 +95,9 @@ public class FileSerializer {
                 boolean ignoreRootPath = serializeField.ignoreRootPath();
                 if (type.getSimpleName().equals("FileElement") || type.getSuperclass().getSimpleName().equals("FileElement")) {
                     obj = (FileElement) value;
-                } else if (field.getType().isAnnotationPresent(Serializable.class)) {
+                } else if (value.getClass().isAnnotationPresent(Serializable.class)) {
                     FileObject fileObj = serialize(value, context);
-                    Serializable serializable = field.getType().getAnnotation(Serializable.class);
+                    Serializable serializable = value.getClass().getAnnotation(Serializable.class);
                     String rootPath = serializable.value();
                     if (ignoreRootPath && !rootPath.isEmpty()) {
                         fileObj = fileObj.get(rootPath).asFileObject();

@@ -119,7 +119,7 @@ public class FileArray extends FileElement implements Iterable<FileElement> {
         if (elements.isEmpty()) return "[]";
 
         StringBuilder builder = new StringBuilder("\n");
-        String indent = StringUtils.repeat("\t", indentLevel);
+        String indent = StringUtils.repeat(" ", indentLevel);
 
         int index = 0;
         for (FileElement element : elements) {

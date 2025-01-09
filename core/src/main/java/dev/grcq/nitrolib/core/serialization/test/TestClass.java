@@ -22,6 +22,9 @@ public class TestClass {
     @SerializeField("glow")
     private boolean glow;
 
+    @SerializeField("test")
+    private int test;
+
     @SerializeField("child")
     private TestClass child;
 
