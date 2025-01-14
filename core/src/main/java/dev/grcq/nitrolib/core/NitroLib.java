@@ -29,7 +29,7 @@ public class NitroLib {
 
     private static boolean initialized = false;
     @Getter
-    private static NitroOptions options;
+    private static NitroOptions options = new NitroOptions();
 
     // TODO
     @Validate(regex = "[a-zA-Z]+")
@@ -53,8 +53,6 @@ public class NitroLib {
         initialized = true;
 
         test = "6";
-
-        options = new NitroOptions();
         OptionParser.parse(options, args);
 
         if (options.isVerbose() && options.isSilent()) {
