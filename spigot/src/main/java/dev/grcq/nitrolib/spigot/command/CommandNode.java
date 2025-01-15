@@ -26,10 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Data
 public class CommandNode {
@@ -289,21 +286,42 @@ public class CommandNode {
         LogUtil.handleException("An error occurred while executing command " + name, e);
     }
 
-    public List<String> tabComplete(CommandSender sender, String arg, int index) {
-        return new ArrayList<>();
+    public List<String> tabComplete(CommandSender sender, String[] args, int index) {
+        List<String> arguments = Lists.newArrayList(args);
+        List<String> flags = Lists.newArrayList();
+        for (Parameter parameter : Arrays.stream(method.getParameters()).filter(p -> p.isAnnotationPresent(Flag.class) || p.isAnnotationPresent(FlagValue.class)).toArray(Parameter[]::new)) {
+            Flag flag = parameter.getAnnotation(Flag.class);
+            flags.add(flag.value());
+
+            arguments.remove("-" + flag.value());
+        }
+
+        String arg = arguments.size() > index ? arguments.get(index) : null;
+        if (arg == null) return Lists.newArrayList();
+
+        List<String> completions = Lists.newArrayList();
+        for (CommandNode node : children) {
+            List<String> names = Lists.newArrayList(node.name);
+            names.addAll(node.aliases);
+
+            for (String name : names) {
+                String[] split = name.split(" ");
+                if (split.length <= index) continue;
+
+                String n = split[index];
+                completions.add(n);
+
+                if (arguments.size() > index && arguments.get(index).equalsIgnoreCase(name)) {
+                    String[] shiftedArgs = null; // todo
+                    names.addAll(node.tabComplete(sender, shiftedArgs, 0));
+                }
+            }
+        }
+
+        return completions;
     }
 
     public void addChild(CommandNode node) {
-        String name = node.getName();
-        String[] split = name.split(" ");
-        if (split.length > 1) {
-            CommandNode parent = children.stream().filter(n -> n.getName().equals(split[0])).findFirst().orElse(null);
-            if (parent == null) return;
-
-            parent.addChild(node);
-            return;
-        }
-
         children.add(node);
     }
 }

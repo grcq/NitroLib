@@ -12,10 +12,59 @@
     <artifactId>spigot</artifactId>
 
     <properties>
-        <maven.compiler.source>8</maven.compiler.source>
-        <maven.compiler.target>8</maven.compiler.target>
+        <java.version>8</java.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <executions>
+                    <execution>
+                        <id>process</id>
+                        <goals>
+                            <goal>compile</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                        <configuration>
+                            <outputDirectory>${generated.sources.directory}</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.bsc.maven</groupId>
+                <artifactId>maven-processor-plugin</artifactId>
+                <version>5.1-jdk8</version>
+                <executions>
+                    <execution>
+                        <id>process</id>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <phase>generate-sources</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <processors>
+                        <processor>dev.grcq.nitrolib.spigot.processors.plugin.PluginFileProcessor</processor>
+                    </processors>
+                </configuration>
+            </plugin>
+        </plugins>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+            </resource>
+        </resources>
+    </build>
 
     <repositories>
         <repository>
