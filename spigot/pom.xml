@@ -20,8 +20,24 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.2.4</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
                         <id>process</id>
@@ -42,7 +58,12 @@
             <plugin>
                 <groupId>org.bsc.maven</groupId>
                 <artifactId>maven-processor-plugin</artifactId>
-                <version>5.1-jdk8</version>
+                <version>2.2.4</version>
+                <configuration>
+                    <processors>
+                        <processor>dev.grcq.nitrolib.spigot.processors.plugin.PluginFileProcessor</processor>
+                    </processors>
+                </configuration>
                 <executions>
                     <execution>
                         <id>process</id>
@@ -52,16 +73,12 @@
                         <phase>generate-sources</phase>
                     </execution>
                 </executions>
-                <configuration>
-                    <processors>
-                        <processor>dev.grcq.nitrolib.spigot.processors.plugin.PluginFileProcessor</processor>
-                    </processors>
-                </configuration>
             </plugin>
         </plugins>
         <resources>
             <resource>
                 <directory>src/main/resources</directory>
+                <filtering>true</filtering>
             </resource>
         </resources>
     </build>
@@ -83,6 +100,11 @@
             <groupId>dev.grcq</groupId>
             <artifactId>core</artifactId>
             <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>org.reflections</groupId>
+            <artifactId>reflections</artifactId>
+            <version>0.10.2</version>
         </dependency>
     </dependencies>
 

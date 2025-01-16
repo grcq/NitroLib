@@ -1,6 +1,5 @@
 package dev.grcq.nitrolib.spigot;
 
-import com.google.common.base.Preconditions;
 import dev.grcq.nitrolib.core.NitroLib;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.AllArgsConstructor;
@@ -25,6 +24,10 @@ public class NitroSpigot {
         enable(initCore, new String[0]);
     }
 
+    public void enable(String[] args) {
+        enable(true, args);
+    }
+
     public void enable(boolean initCore, String[] args) {
         if (instance != null) {
             LogUtil.warn("NitroLib is already initialised for this Minecraft server. If you are running another plugin that uses NitroLib, there's no need to initialise it again.");
@@ -37,8 +40,6 @@ public class NitroSpigot {
         if (initCore) NitroLib.init(source.getClass(), args);
 
         LogUtil.info("Initialising NitroLib for Spigot...");
-
-
 
         LogUtil.info("NitroLib has been successfully initialised for Spigot.");
     }

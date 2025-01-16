@@ -13,7 +13,7 @@ public class BukkitCommand extends Command {
     private final CommandNode node;
 
     public BukkitCommand(CommandNode node) {
-        super(node.getName(), node.getDescription(), null, node.getAliases());
+        super(node.getName(), node.getDescription() == null ? "" : node.getDescription(), node.getUsage() == null ? "" : node.getUsage(), node.getAliases());
         this.node = node;
 
         if (node.getPermission() != null) {
@@ -45,6 +45,6 @@ public class BukkitCommand extends Command {
 
     @Override
     public List<String> tabComplete(CommandSender sender, String alias, String[] args) throws IllegalArgumentException {
-        return super.tabComplete(sender, alias, args);
+        return node.tabComplete(sender, alias, args, args.length - 1);
     }
 }

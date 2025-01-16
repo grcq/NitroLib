@@ -30,6 +30,7 @@ public class ArgumentParser {
 
         List<String> flags = Lists.newArrayList();
         List<String> arguments = Lists.newArrayList(args);
+        LogUtil.debug("Parsing %s %b", arguments, arguments.isEmpty());
         for (int i = 0; i < parameters.length; i++) {
             Parameter param = parameters[i];
             if (param.isAnnotationPresent(Flag.class)) {
@@ -45,10 +46,10 @@ public class ArgumentParser {
             if (param.isAnnotationPresent(FlagValue.class)) {
                 FlagValue flagValue = param.getAnnotation(FlagValue.class);
                 String flagName = "-" + flagValue.name();
-                String argName = flagValue.arg();
 
                 boolean found = arguments.removeIf(arg -> arg.equalsIgnoreCase(flagName));
                 if (found) {
+                    flags.add(flagValue.name());
                     String value;
                     if (arguments.isEmpty()) {
                         if (flagValue.required() || flagValue.def().isEmpty()) return null;
@@ -78,7 +79,7 @@ public class ArgumentParser {
                         parsed = parse(sender, flags.toArray(new String[0]), value, String.class);
                     } else parsed = parse(sender, flags.toArray(new String[0]), value, param.getType());
 
-                    if (parsed == null) return new ArrayList<>();
+                    if (parsed == null) return null;
                 }
 
                 continue;
@@ -88,10 +89,9 @@ public class ArgumentParser {
                 Arg arg = param.getAnnotation(Arg.class);
                 String argName = arg.value();
 
-                if (arguments.isEmpty() && i < parameters.length - 1) {
-                    if (arg.required() || arg.def().isEmpty()) return null;
-
-                    data.add(new ArgData(argName, null, false));
+                if (arguments.isEmpty()) {
+                    if (arg.required() && arg.def().isEmpty()) return new ArrayList<>();
+                    data.add(new ArgData(argName, arg.def().isEmpty() ? null : arg.def(), false));
                     continue;
                 }
 
@@ -115,20 +115,21 @@ public class ArgumentParser {
 
                     parsed = parse(sender, flags.toArray(new String[0]), argValue, String.class);
                 } else {
-                    if (arg.wildcard() && i == parameters.length - 1) {
+                    if (arg.wildcard()) {
                         StringBuilder builder = new StringBuilder(argValue);
-                        while (i < parameters.length - 1 && !parameters[i + 1].isAnnotationPresent(Arg.class)) {
+                        while (!arguments.isEmpty()) {
                             builder.append(" ").append(arguments.remove(0));
-                            i++;
                         }
 
                         argValue = builder.toString();
                     }
 
+                    LogUtil.debug("Parsing " + argValue + " for " + argName);
+                    LogUtil.debug("%s", arguments);
                     parsed = parse(sender, flags.toArray(new String[0]), argValue, param.getType());
                 }
 
-                if (parsed == null) return new ArrayList<>();
+                if (parsed == null) return null;
 
                 data.add(new ArgData(argName, parsed, arg.required()));
                 continue;
@@ -137,8 +138,7 @@ public class ArgumentParser {
             LogUtil.error("Invalid parameter. Ensure all parameters are annotated with either @Arg, @Flag, or @FlagValue.");
         }
 
-        if (data.stream().anyMatch(Objects::isNull)) return new ArrayList<>();
-
+        if (!arguments.isEmpty()) data.add(null);
         return data;
     }
 

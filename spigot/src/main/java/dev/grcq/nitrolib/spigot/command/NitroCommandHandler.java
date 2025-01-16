@@ -5,11 +5,14 @@ import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.core.utils.Util;
 import dev.grcq.nitrolib.spigot.command.annotations.Command;
 import dev.grcq.nitrolib.spigot.command.parameters.TypeParameter;
+import dev.grcq.nitrolib.spigot.command.parameters.impl.IntegerType;
+import dev.grcq.nitrolib.spigot.command.parameters.impl.PlayerType;
+import dev.grcq.nitrolib.spigot.command.parameters.impl.StringType;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
 import lombok.Setter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.SimplePluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,17 +31,14 @@ public class NitroCommandHandler {
         COMMANDS = new HashMap<>();
         TYPE_PARAMETERS = new HashMap<>();
 
-        if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
-            SimplePluginManager manager = (SimplePluginManager) Bukkit.getPluginManager();
+        register(String.class, new StringType());
+        register(Player.class, new PlayerType());
+        register(Integer.class, new IntegerType());
+        register(int.class, new IntegerType());
+    }
 
-            try {
-                Field field = manager.getClass().getField("commandMap");
-                field.setAccessible(true);
-                COMMAND_MAP = (CommandMap) field.get(manager);
-            } catch (Exception e) {
-                LogUtil.handleException("Unable to retrieve command map!", e);
-            }
-        }
+    protected static CommandNode getCommand(String name) {
+        return COMMANDS.get(name);
     }
 
     public static List<CommandNode> getCommands(JavaPlugin plugin) {
@@ -49,10 +49,30 @@ public class NitroCommandHandler {
         return TYPE_PARAMETERS;
     }
 
+    public static void register(Class<?> clazz, TypeParameter<?> parameter) {
+        TYPE_PARAMETERS.put(clazz, parameter);
+    }
+
     private final JavaPlugin plugin;
 
     public NitroCommandHandler(JavaPlugin plugin) {
         this.plugin = plugin;
+
+        updateCommandMap();
+    }
+
+    private void updateCommandMap() {
+        if (Bukkit.getPluginManager() instanceof SimplePluginManager) {
+            SimplePluginManager manager = (SimplePluginManager) Bukkit.getPluginManager();
+
+            try {
+                Field field = manager.getClass().getDeclaredField("commandMap");
+                field.setAccessible(true);
+                COMMAND_MAP = (CommandMap) field.get(manager);
+            } catch (Exception e) {
+                LogUtil.handleException("Unable to retrieve command map!", e);
+            }
+        }
     }
 
     @Getter @Setter private String permissionMessage = "&cYou do not have permission to execute this command!";
@@ -62,7 +82,7 @@ public class NitroCommandHandler {
     @Getter @Setter private String exampleMessage = "&cExample: /%s";
     @Getter @Setter private String cooldownMessage = "&cYou must wait %.2f seconds before executing this command again!";
 
-    public void registerAll(JavaPlugin plugin) {
+    public void registerAll() {
         Collection<Class<?>> classes = Util.getClassesInPackage(plugin.getClass());
         for (Class<?> clazz : classes) {
             register(clazz);
@@ -70,8 +90,10 @@ public class NitroCommandHandler {
     }
 
     public void register(Class<?> clazz) {
-        List<Method> methods = Lists.newArrayList(clazz.getDeclaredMethods());
-        methods.sort(Comparator.comparingInt(m -> m.getAnnotation(Command.class).value()[0].split(" ").length));
+        List<Method> methods = Arrays.stream(clazz.getDeclaredMethods())
+                .filter(m -> m.isAnnotationPresent(Command.class))
+                .sorted(Comparator.comparingInt(m -> m.getAnnotation(Command.class).value()[0].split(" ").length))
+                .collect(Collectors.toList());
 
         for (Method method : methods) {
             if (!method.isAnnotationPresent(Command.class)) continue;
@@ -93,6 +115,12 @@ public class NitroCommandHandler {
                 return;
             }
 
+            COMMANDS.put(node.getName(), node);
+            for (String alias : node.getAliases()) {
+                if (COMMANDS.containsKey(alias)) LogUtil.warn("Command alias '%s' is already registered. This could lead to some issues, please change the name to prevent issues.", alias);
+                COMMANDS.put(alias, node);
+            }
+
             String name = node.getName();
             String[] split = name.split(" ");
             if (split.length > 1) {
@@ -102,8 +130,6 @@ public class NitroCommandHandler {
                 parent.addChild(node);
                 continue;
             }
-
-            COMMANDS.put(node.getName(), node);
 
             BukkitCommand cmd = new BukkitCommand(node);
             if (COMMAND_MAP != null) COMMAND_MAP.register(plugin.getName(), cmd);
