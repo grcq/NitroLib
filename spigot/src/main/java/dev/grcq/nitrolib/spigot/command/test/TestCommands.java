@@ -4,6 +4,7 @@ import dev.grcq.nitrolib.spigot.command.annotations.Arg;
 import dev.grcq.nitrolib.spigot.command.annotations.Command;
 import dev.grcq.nitrolib.spigot.command.annotations.Flag;
 import dev.grcq.nitrolib.spigot.command.annotations.FlagValue;
+import dev.grcq.nitrolib.spigot.hologram.Hologram;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -61,8 +62,14 @@ public class TestCommands {
 
     @Command("test flagval")
     public void testFlagVal(CommandSender sender, @FlagValue(name = "f", arg = "value") String value, @Arg(value = "name") String name) {
-        sender.sendMessage("Name: " + name + ", Value: " + value);
+        sender.sendMessage("Flag Value: " + value + ", Name: " + name);
     }
 
+    @Command("hologram")
+    public void hologram(Player player, @Arg("id") String id, @Arg(value = "text", wildcard = true) String text) {
+        String[] lines = text.split("\\|\\|");
+        Hologram hologram = new Hologram(id, player.getLocation(), lines);
+        hologram.spawn();
+    }
 
 }

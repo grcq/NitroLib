@@ -1,39 +1,25 @@
 package dev.grcq.nitrolib.core;
 
 import com.google.common.base.Preconditions;
-import com.google.gson.JsonArray;
-import com.google.gson.reflect.TypeToken;
-import dev.grcq.nitrolib.core.annotations.Validate;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.LongSerializationPolicy;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
-import dev.grcq.nitrolib.core.config.TestConfig;
-import dev.grcq.nitrolib.core.database.Condition;
-import dev.grcq.nitrolib.core.database.RelationalDatabase;
-import dev.grcq.nitrolib.core.serialization.FileDeserializer;
-import dev.grcq.nitrolib.core.serialization.FileSerializer;
-import dev.grcq.nitrolib.core.serialization.elements.FileArray;
-import dev.grcq.nitrolib.core.serialization.elements.FileElement;
-import dev.grcq.nitrolib.core.serialization.elements.FileObject;
-import dev.grcq.nitrolib.core.serialization.test.TestClass;
+import dev.grcq.nitrolib.core.inject.InjectHandler;
 import dev.grcq.nitrolib.core.utils.LogUtil;
+import dev.grcq.nitrolib.core.utils.TimeUtil;
 import lombok.Getter;
-
-import java.io.File;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
+import net.bytebuddy.agent.ByteBuddyAgent;
 
 public class NitroLib {
+
+    public static final Gson GSON = new GsonBuilder().setLongSerializationPolicy(LongSerializationPolicy.STRING).create();
 
     private static boolean initialized = false;
     @Getter
     private static NitroOptions options = new NitroOptions();
-
-    // TODO
-    @Validate(regex = "[a-zA-Z]+")
-    private static String test;
 
     /**
      * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
@@ -52,7 +38,6 @@ public class NitroLib {
         Preconditions.checkState(!initialized, "NitroLib is already initialized");
         initialized = true;
 
-        test = "6";
         OptionParser.parse(options, args);
 
         if (options.isVerbose() && options.isSilent()) {
@@ -66,6 +51,13 @@ public class NitroLib {
 
         configurationHandler.loadConfiguration(mainClass);
         LogUtil.info("Handlers loaded!");
+        InjectHandler.register(NitroOptions.class, options);
+
+        InjectHandler injectHandler = new InjectHandler(mainClass);
+        injectHandler.inject();
+
+        TestClass testClass = new TestClass();
+        System.out.println(TestClass.getOptions());
 
         LogUtil.info("NitroLib initialized!");
     }

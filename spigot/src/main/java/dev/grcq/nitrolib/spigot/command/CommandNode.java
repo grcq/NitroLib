@@ -299,6 +299,7 @@ public class CommandNode {
     }
 
     public List<String> tabComplete(CommandSender sender, String label, String[] args, int index) {
+        List<String> completions = Lists.newArrayList();
         List<String> arguments = Lists.newArrayList(args);
         List<String> flags = Lists.newArrayList();
         for (Parameter parameter : Arrays.stream(method.getParameters()).filter(p -> p.isAnnotationPresent(Flag.class) || p.isAnnotationPresent(FlagValue.class)).toArray(Parameter[]::new)) {
@@ -311,7 +312,21 @@ public class CommandNode {
 
             if (parameter.isAnnotationPresent(FlagValue.class)) {
                 FlagValue flagValue = parameter.getAnnotation(FlagValue.class);
-                flags.add(flagValue.name());
+                if (index - 1 < 0) continue;
+
+                boolean previousFlag = Arrays.asList(args).get(index - 1).equals("-" + flagValue.name());
+                if (previousFlag) {
+                    flags.add(flagValue.name());
+
+                    Class<?> type = parameter.getType();
+                    TypeParameter<?> param = NitroCommandHandler.getTypeParameters().get(type);
+                    if (param == null) {
+                        LogUtil.error("No type parameter found for " + type.getName());
+                        return new ArrayList<>();
+                    }
+
+                    completions.addAll(param.tabComplete(sender, flags.toArray(new String[0]), args[index]));
+                }
             }
         }
 
@@ -320,7 +335,6 @@ public class CommandNode {
         String arg = args.length > index ? arguments.get(index) : null;
         if (arg == null) return Lists.newArrayList();
 
-        List<String> completions = Lists.newArrayList();
         for (CommandNode child : children) {
             List<String> names = Lists.newArrayList(child.name);
             names.addAll(child.aliases);

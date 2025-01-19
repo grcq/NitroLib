@@ -46,20 +46,18 @@ public class ArgumentParser {
             if (param.isAnnotationPresent(FlagValue.class)) {
                 FlagValue flagValue = param.getAnnotation(FlagValue.class);
                 String flagName = "-" + flagValue.name();
+                String argName = flagValue.arg();
 
+                int index = arguments.indexOf(flagName);
                 boolean found = arguments.removeIf(arg -> arg.equalsIgnoreCase(flagName));
                 if (found) {
-                    flags.add(flagValue.name());
-                    String value;
-                    if (arguments.isEmpty()) {
-                        if (flagValue.required() || flagValue.def().isEmpty()) return null;
-
-                        value = flagValue.def();
-                    } else {
-                        value = arguments.remove(0);
+                    if (index >= arguments.size()) {
+                        if (flagValue.required() && flagValue.def().isEmpty()) return new ArrayList<>();
+                        data.add(new FlagValueData(flagName, argName, flagValue.def().isEmpty() ? null : flagValue.def()));
+                        continue;
                     }
 
-                    Object parsed;
+                    String value = arguments.remove(index);
                     if (value.startsWith("\"")) {
                         if (value.endsWith("\"")) value = value.substring(1, value.length() - 1);
                         else {
@@ -76,12 +74,17 @@ public class ArgumentParser {
                             value = builder.substring(1, builder.length() - 1);
                         }
 
-                        parsed = parse(sender, flags.toArray(new String[0]), value, String.class);
-                    } else parsed = parse(sender, flags.toArray(new String[0]), value, param.getType());
+                        value = value.trim();
+                    }
 
+                    Object parsed = parse(sender, flags.toArray(new String[0]), value, param.getType());
                     if (parsed == null) return null;
+
+                    data.add(new FlagValueData(flagName, argName, parsed));
+                    continue;
                 }
 
+                data.add(new FlagValueData(flagName, argName, null));
                 continue;
             }
 
@@ -96,7 +99,6 @@ public class ArgumentParser {
                 }
 
                 String argValue = arguments.remove(0);
-                Object parsed;
                 if (argValue.startsWith("\"")) {
                     if (argValue.endsWith("\"")) argValue = argValue.substring(1, argValue.length() - 1);
                     else {
@@ -113,7 +115,7 @@ public class ArgumentParser {
                         argValue = builder.substring(1, builder.length() - 1);
                     }
 
-                    parsed = parse(sender, flags.toArray(new String[0]), argValue, String.class);
+                    argValue = argValue.trim();
                 } else {
                     if (arg.wildcard()) {
                         StringBuilder builder = new StringBuilder(argValue);
@@ -123,12 +125,9 @@ public class ArgumentParser {
 
                         argValue = builder.toString();
                     }
-
-                    LogUtil.debug("Parsing " + argValue + " for " + argName);
-                    LogUtil.debug("%s", arguments);
-                    parsed = parse(sender, flags.toArray(new String[0]), argValue, param.getType());
                 }
 
+                Object parsed = parse(sender, flags.toArray(new String[0]), argValue, param.getType());
                 if (parsed == null) return null;
 
                 data.add(new ArgData(argName, parsed, arg.required()));
@@ -150,6 +149,10 @@ public class ArgumentParser {
         }
 
         return parameter.parse(sender, flags, arg);
+    }
+
+    private enum ParseValue {
+        NONE
     }
 
 }

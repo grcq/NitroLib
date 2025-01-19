@@ -48,7 +48,7 @@ public class Util {
             }
             return object;
         } catch (Exception e) {
-            e.printStackTrace();
+            LogUtil.handleException("Failed to parse class as JSON.", e);
         }
 
         return null;
@@ -71,7 +71,7 @@ public class Util {
         try {
             jarFile = new JarFile(jarPath);
         } catch (Exception e) {
-            LogUtil.handleException("Failed to read JAR file.", e);
+            LogUtil.handleException("Failed to read JAR file", e);
             return new ArrayList<>();
         }
 

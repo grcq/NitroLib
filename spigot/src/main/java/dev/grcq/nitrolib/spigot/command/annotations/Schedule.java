@@ -5,12 +5,13 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target(ElementType.PARAMETER)
+@Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface FlagValue {
-    String name();
-    String arg();
+public @interface Schedule {
 
-    String def() default "";
-    boolean required() default true;
+    boolean async() default false;
+
+    long delay() default 0L;
+    long period() default 0L;
+
 }
