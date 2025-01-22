@@ -9,15 +9,20 @@ import dev.grcq.nitrolib.core.Constants;
 import dev.grcq.nitrolib.core.config.ConfigField;
 import lombok.experimental.UtilityClass;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @UtilityClass
 public class Util {
@@ -106,5 +111,29 @@ public class Util {
         }
 
         return ImmutableSet.copyOf(classes);
+    }
+
+    public static Collection<Class<?>> getClassesInPackageWithClassLoader(String packageName) {
+        InputStream stream = ClassLoader.getSystemClassLoader()
+                .getResourceAsStream(packageName.replaceAll("[.]", "/"));
+        if (stream == null) {
+            LogUtil.warn("Failed to get resource stream for package: " + packageName);
+            return ImmutableSet.of();
+        }
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(stream));
+        return reader.lines()
+                .filter(line -> line.endsWith(".class"))
+                .map(line -> getClass(packageName, line))
+                .collect(Collectors.toSet());
+    }
+
+    private static Class<?> getClass(String packageName, String className) {
+        try {
+            return Class.forName(packageName + "." + className.substring(0, className.lastIndexOf('.')));
+        } catch (ClassNotFoundException e) {
+            LogUtil.handleException("Failed to load class: " + className, e);
+            return null;
+        }
     }
 }

@@ -8,6 +8,6 @@ public class TestClass {
 
     @Inject
     @Getter
-    private static NitroOptions options;
+    private NitroOptions options;
 
 }

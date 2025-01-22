@@ -4,8 +4,10 @@ import dev.grcq.nitrolib.core.cli.options.IOptions;
 import dev.grcq.nitrolib.core.cli.options.Option;
 import dev.grcq.nitrolib.core.cli.options.OptionValue;
 import lombok.Getter;
+import lombok.ToString;
 
 @Getter
+@ToString
 public class NitroOptions implements IOptions {
 
     @Option(names = "silent", shortNames = "s", description = "Silent mode", value = OptionValue.BOOLEAN)

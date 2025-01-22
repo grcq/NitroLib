@@ -41,10 +41,12 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <configuration>
                     <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>dev.grcq.nitrolib.core.NitroLib</mainClass>
-                        </manifest>
+                        <manifestEntries>
+                            <Add-Classpath>true</Add-Classpath>
+                            <Main-Class>dev.grcq.nitrolib.core.NitroLib</Main-Class>
+                            <Can-Redefine-Classes>true</Can-Redefine-Classes>
+                            <Can-Retransform-Classes>true</Can-Retransform-Classes>
+                        </manifestEntries>
                     </archive>
                 </configuration>
                 <executions>
@@ -56,6 +58,19 @@
                         </goals>
                     </execution>
                 </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.3.0</version>
+                <configuration>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-javaagent:${project.build.directory}/${project.build.finalName}.jar</argument>
+                        <argument>-jar</argument>
+                        <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                    </arguments>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -103,14 +118,9 @@
             <version>0.10.2</version>
         </dependency>
         <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy</artifactId>
-            <version>1.14.18</version>
-        </dependency>
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-            <version>1.14.18</version>
+            <groupId>javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>3.12.0.SP1</version>
         </dependency>
     </dependencies>
 

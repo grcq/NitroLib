@@ -11,7 +11,11 @@ import dev.grcq.nitrolib.core.inject.InjectHandler;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.core.utils.TimeUtil;
 import lombok.Getter;
+import lombok.SneakyThrows;
 import net.bytebuddy.agent.ByteBuddyAgent;
+
+import java.lang.management.ManagementFactory;
+import java.nio.file.Paths;
 
 public class NitroLib {
 
@@ -34,6 +38,7 @@ public class NitroLib {
      * @param mainClass The main class of your project
      * @param args The arguments passed to the main method, or your custom arguments
      */
+    @SneakyThrows
     public static void init(Class<?> mainClass, String[] args) {
         Preconditions.checkState(!initialized, "NitroLib is already initialized");
         initialized = true;
@@ -43,6 +48,10 @@ public class NitroLib {
         if (options.isVerbose() && options.isSilent()) {
             LogUtil.error("Cannot have both verbose and silent mode enabled", 1);
         }
+
+        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
+        String agentPath = Paths.get(mainClass.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
+        LogUtil.debug("PID: %s, Agent Path: %s", pid, agentPath);
 
         LogUtil.info("Initializing NitroLib");
 
@@ -57,7 +66,7 @@ public class NitroLib {
         injectHandler.inject();
 
         TestClass testClass = new TestClass();
-        System.out.println(TestClass.getOptions());
+        System.out.println(testClass.getOptions());
 
         LogUtil.info("NitroLib initialized!");
     }

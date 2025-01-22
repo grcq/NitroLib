@@ -1,6 +1,7 @@
 package dev.grcq.nitrolib.spigot.processors.plugin;
 
 import com.google.auto.service.AutoService;
+import com.google.inject.internal.util.Sets;
 
 import javax.annotation.processing.*;
 import javax.lang.model.SourceVersion;
@@ -12,6 +13,9 @@ import javax.tools.FileObject;
 import javax.tools.StandardLocation;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 @AutoService(Processor.class)
@@ -65,6 +69,9 @@ public class PluginFileProcessor extends AbstractProcessor {
         builder.append("version: ").append(plugin.version()).append("\n");
         builder.append("main: ").append(main).append("\n");
 
+        Set<String> softDepend = new HashSet<>(Arrays.asList(plugin.softDepend()));
+        softDepend.add("ProtocolLib");
+
         if (!plugin.description().isEmpty()) builder.append("description: ").append(plugin.description()).append("\n");
         if (plugin.authors().length > 0) {
             if (plugin.authors().length == 1) {
@@ -76,7 +83,7 @@ public class PluginFileProcessor extends AbstractProcessor {
         if (!plugin.website().isEmpty()) builder.append("website: ").append(plugin.website()).append("\n");
         if (plugin.loadBefore().length > 0) builder.append("loadbefore: [").append(String.join(", ", plugin.loadBefore())).append("]\n");
         if (plugin.depend().length > 0) builder.append("depend: [").append(String.join(", ", plugin.depend())).append("]\n");
-        if (plugin.softDepend().length > 0) builder.append("softdepend: [").append(String.join(", ", plugin.softDepend())).append("]\n");
+        builder.append("softdepend: [").append(String.join(", ", softDepend)).append("]\n");
         if (!plugin.prefix().isEmpty()) builder.append("prefix: ").append(plugin.prefix()).append("\n");
         if (!plugin.apiVersion().isEmpty()) builder.append("api-version: ").append(plugin.apiVersion()).append("\n");
 
