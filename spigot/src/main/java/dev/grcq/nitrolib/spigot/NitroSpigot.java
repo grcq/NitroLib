@@ -53,7 +53,6 @@ public class NitroSpigot {
     }
 
     public void enable(boolean initCore, String[] args) {
-
         if (instance != null) {
             LogUtil.warn("NitroLib is already initialised for this Minecraft server. If you are running another plugin that uses NitroLib, there's no need to initialise it again.");
             LogUtil.warn("We recommend having a core plugin that initialises the library, but it is not required.");
