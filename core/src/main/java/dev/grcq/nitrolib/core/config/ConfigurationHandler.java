@@ -20,11 +20,10 @@ public class ConfigurationHandler {
         Preconditions.checkState(!initialized, "Configuration is already loaded");
         initialized = true;
 
-        Reflections reflections = new Reflections(mainClass.getPackage().getName());
-        Set<Class<?>> configurationClasses = reflections.getTypesAnnotatedWith(Configuration.class);
-
-        for (Class<?> configurationClass : configurationClasses) {
+        for (Class<?> configurationClass : Util.getClassesInPackageWithClassLoader(mainClass.getPackage().getName())) {
             Configuration configuration = configurationClass.getAnnotation(Configuration.class);
+            if (configuration == null) continue;
+
             String fileName = configuration.value();
             String extension = fileName.substring(fileName.lastIndexOf('.') + 1);
             LogUtil.verbose("Found class with @Configuration annotation: %s", configurationClass.getName());

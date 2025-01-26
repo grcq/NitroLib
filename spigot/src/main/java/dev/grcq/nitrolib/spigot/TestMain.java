@@ -12,7 +12,7 @@ public class TestMain extends JavaPlugin {
     @Override
     public void onEnable() {
         nitro = new NitroSpigot(this);
-        nitro.enable(new String[] { "-d" });
+        nitro.enable();
 
         NitroCommandHandler commandHandler = new NitroCommandHandler(this);
         commandHandler.registerAll();

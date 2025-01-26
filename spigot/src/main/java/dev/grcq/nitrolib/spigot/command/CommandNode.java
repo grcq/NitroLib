@@ -31,6 +31,8 @@ import java.lang.reflect.Parameter;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static dev.grcq.nitrolib.spigot.command.NitroCommandHandler.INSTANCES;
+
 @Data
 public class CommandNode {
 
@@ -96,7 +98,10 @@ public class CommandNode {
         Preconditions.checkArgument(method.getParameterCount() > 0, "Command requires at least one parameter that is an instance of CommandSender!");
         Preconditions.checkArgument(CommandSender.class.isAssignableFrom(method.getParameterTypes()[0]), "First parameter must be an instance of CommandSender!");
         this.method = method;
-        this.instance = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+        this.instance = INSTANCES.get(method.getDeclaringClass());
+        if (instance == null) {
+            throw new IllegalArgumentException("Instance for class " + method.getDeclaringClass().getName() + " not found!");
+        }
 
         Class<?> senderClass = method.getParameterTypes()[0];
         this.consoleOnly = ConsoleCommandSender.class.isAssignableFrom(senderClass);
@@ -292,7 +297,7 @@ public class CommandNode {
     protected void exception(CommandSender sender, Exception e) {
         sender.sendMessage(ChatUtil.format("&cAn error occurred while executing this command."));
         if (sender.isOp() && e.getMessage() != null) {
-            sender.sendMessage(ChatUtil.format("&c" + e.getMessage()));
+            sender.sendMessage(ChatUtil.format("&c" + e.getClass().getName() + ": " + e.getMessage()));
         }
 
         LogUtil.handleException("An error occurred while executing command " + name, e);

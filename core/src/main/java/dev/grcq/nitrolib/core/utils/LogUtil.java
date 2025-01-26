@@ -11,7 +11,7 @@ public class LogUtil {
     }
 
     public static void handleException(Object message, Exception e) {
-        handleException(message, e, 5);
+        handleException(message, e, 10);
     }
 
     public static void handleException(Exception e, int length) {
@@ -20,7 +20,7 @@ public class LogUtil {
 
     public static void handleException(Object message, Exception e, int length, Object ...args) {
         error(message, -1, args);
-        error(e.getClass() + ": " + e.getMessage());
+        error(e.getClass().getName() + ": " + e.getMessage());
         length = Math.min(length, e.getStackTrace().length);
         for (int i = 0; i < length; i++) {
             StackTraceElement element = e.getStackTrace()[i];

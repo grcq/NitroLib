@@ -123,7 +123,7 @@ public class FileSerializer {
 
                 file.createNewFile();
             } catch (IOException e) {
-                LogUtil.error("Failed to create file: " + file.getName());
+                LogUtil.handleException("Failed to create file: " + file.getName(), e);
                 return;
             }
         }

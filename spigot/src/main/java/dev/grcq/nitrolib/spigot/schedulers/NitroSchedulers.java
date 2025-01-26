@@ -12,7 +12,7 @@ public class NitroSchedulers {
 
     private final NitroSpigot nitro;
 
-    @Schedule
+    @Schedule(dependencies = "ProtocolLib")
     public void updateTab(Player player) {
         TabHandler.update(player);
     }

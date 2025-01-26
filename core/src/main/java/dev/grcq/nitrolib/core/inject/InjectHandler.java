@@ -3,11 +3,15 @@ package dev.grcq.nitrolib.core.inject;
 import dev.grcq.nitrolib.core.annotations.Inject;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.core.utils.Util;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class InjectHandler {
@@ -38,31 +42,24 @@ public class InjectHandler {
 
     public void inject() {
         for (Class<?> clazz : Util.getClassesInPackageWithClassLoader(mainClass.getPackage().getName())) {
-            boolean hasInject = false;
             for (Field field : clazz.getDeclaredFields()) {
                 if (!field.isAnnotationPresent(Inject.class)) continue;
-                if (Modifier.isStatic(field.getModifiers())) {
-                    field.setAccessible(true);
-                    Object instance = get(field.getType());
-                    if (instance == null) {
-                        LogUtil.warn("Failed to inject field " + field.getName());
-                        LogUtil.verbose("No instance found for class " + field.getType().getName() + ", is it registered?");
-                        continue;
-                    }
+                if (!Modifier.isStatic(field.getModifiers())) continue;
 
-                    try {
-                        field.set(null, instance);
-                    } catch (IllegalAccessException e) {
-                        LogUtil.error("Failed to inject field " + field.getName());
-                    }
+                field.setAccessible(true);
+                Object instance = get(field.getType());
+                if (instance == null) {
+                    LogUtil.warn("Failed to inject field " + field.getName());
+                    LogUtil.verbose("No instance found for class " + field.getType().getName() + ", is it registered?");
                     continue;
                 }
 
-                hasInject = true;
+                try {
+                    field.set(null, instance);
+                } catch (IllegalAccessException e) {
+                    LogUtil.error("Failed to inject field " + field.getName());
+                }
             }
-            if (!hasInject) continue;
-
-            // TODO: inject inside constructors
         }
     }
 }

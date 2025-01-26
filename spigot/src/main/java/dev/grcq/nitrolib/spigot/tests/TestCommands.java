@@ -1,4 +1,4 @@
-package dev.grcq.nitrolib.spigot.command.test;
+package dev.grcq.nitrolib.spigot.tests;
 
 import dev.grcq.nitrolib.spigot.command.annotations.Arg;
 import dev.grcq.nitrolib.spigot.command.annotations.Command;

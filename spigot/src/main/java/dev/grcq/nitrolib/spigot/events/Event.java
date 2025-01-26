@@ -1,4 +1,6 @@
-package dev.grcq.nitrolib.spigot.command.annotations;
+package dev.grcq.nitrolib.spigot.events;
+
+import org.bukkit.event.EventPriority;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,12 +9,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
-public @interface Schedule {
-
-    boolean async() default false;
-
-    long delay() default 0L;
-    long period() default 0L;
-
-    String[] dependencies() default {};
+public @interface Event {
+    EventPriority priority() default EventPriority.NORMAL;
+    boolean ignoreCancelled() default false;
 }

@@ -25,11 +25,13 @@ public class NitroCommandHandler {
 
     private static final Map<String, CommandNode> COMMANDS;
     private static final Map<Class<?>, TypeParameter<?>> TYPE_PARAMETERS;
+    protected static final Map<Class<?>, Object> INSTANCES;
     private static CommandMap COMMAND_MAP;
 
     static {
         COMMANDS = new HashMap<>();
         TYPE_PARAMETERS = new HashMap<>();
+        INSTANCES = new HashMap<>();
 
         register(String.class, new StringType());
         register(Player.class, new PlayerType());
@@ -83,7 +85,11 @@ public class NitroCommandHandler {
     @Getter @Setter private String cooldownMessage = "&cYou must wait %.2f seconds before executing this command again!";
 
     public void registerAll() {
-        Collection<Class<?>> classes = Util.getClassesInPackage(plugin.getClass());
+        registerAll(plugin.getClass());
+    }
+
+    public void registerAll(Class<?> mainClass) {
+        Collection<Class<?>> classes = Util.getClassesInPackage(mainClass);
         for (Class<?> clazz : classes) {
             register(clazz);
         }
@@ -106,6 +112,13 @@ public class NitroCommandHandler {
         for (Method m : method.getDeclaringClass().getDeclaredMethods()) {
             if (!m.isAnnotationPresent(Command.class)) continue;
 
+            try {
+                Object instance = method.getDeclaringClass().getDeclaredConstructor().newInstance();
+                INSTANCES.put(method.getDeclaringClass(), instance);
+            } catch (Exception e) {
+                LogUtil.handleException("Failed to create instance of class " + method.getDeclaringClass().getSimpleName(), e);
+                return;
+            }
             Command command = m.getAnnotation(Command.class);
             CommandNode node;
             try {

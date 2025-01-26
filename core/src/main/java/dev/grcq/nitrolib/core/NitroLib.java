@@ -9,13 +9,14 @@ import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
 import dev.grcq.nitrolib.core.inject.InjectHandler;
 import dev.grcq.nitrolib.core.utils.LogUtil;
-import dev.grcq.nitrolib.core.utils.TimeUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import net.bytebuddy.agent.ByteBuddyAgent;
+import org.apache.commons.lang3.StringUtils;
 
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Set;
 
 public class NitroLib {
 
@@ -23,7 +24,7 @@ public class NitroLib {
 
     private static boolean initialized = false;
     @Getter
-    private static NitroOptions options = new NitroOptions();
+    private static final NitroOptions options = new NitroOptions();
 
     /**
      * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
@@ -49,24 +50,20 @@ public class NitroLib {
             LogUtil.error("Cannot have both verbose and silent mode enabled", 1);
         }
 
-        String pid = ManagementFactory.getRuntimeMXBean().getName().split("@")[0];
-        String agentPath = Paths.get(mainClass.getProtectionDomain().getCodeSource().getLocation().toURI()).toString();
-        LogUtil.debug("PID: %s, Agent Path: %s", pid, agentPath);
-
         LogUtil.info("Initializing NitroLib");
 
         LogUtil.info("Loading handlers...");
         ConfigurationHandler configurationHandler = new ConfigurationHandler();
 
-        configurationHandler.loadConfiguration(mainClass);
-        LogUtil.info("Handlers loaded!");
         InjectHandler.register(NitroOptions.class, options);
-
         InjectHandler injectHandler = new InjectHandler(mainClass);
         injectHandler.inject();
 
-        TestClass testClass = new TestClass();
-        System.out.println(testClass.getOptions());
+        configurationHandler.loadConfiguration(mainClass);
+        LogUtil.info("Handlers loaded!");
+
+        //TestClass testClass = new TestClass();
+        //System.out.println(testClass.getOptions());
 
         LogUtil.info("NitroLib initialized!");
     }
