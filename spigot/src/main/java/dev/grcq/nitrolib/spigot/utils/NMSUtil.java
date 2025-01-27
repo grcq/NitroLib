@@ -1,8 +1,11 @@
 package dev.grcq.nitrolib.spigot.utils;
 
+import com.mojang.authlib.GameProfile;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.experimental.UtilityClass;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
@@ -95,6 +98,66 @@ public class NMSUtil {
         } catch (Exception e) {
             LogUtil.handleException(e);
             return new float[] {0f, 0f, 0f};
+        }
+    }
+
+    public static Object createEntityPlayer(Object world, String name) {
+        try {
+            Class<?> entityPlayerClass = getNMSClass("EntityPlayer");
+            Class<?> worldServerClass = getNMSClass("WorldServer");
+            Object worldServer = worldServerClass.cast(world);
+
+            return entityPlayerClass.getConstructor(worldServerClass, getNMSClass("GameProfile")).newInstance(worldServer, new com.mojang.authlib.GameProfile(null, name));
+        } catch (Exception e) {
+            LogUtil.handleException(e);
+            return null;
+        }
+    }
+
+    public static Object getWorldServer(World world) {
+        try {
+            Class<?> craftWorldClass = getOBCClass("CraftWorld");
+            Object craftWorld = craftWorldClass.cast(world);
+            return craftWorldClass.getDeclaredMethod("getHandle").invoke(craftWorld);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Object createEntityPlayer(Object mcServer, Object worldServer, GameProfile gameProfile, Location location) {
+        try {
+            Class<?> interactManagerClass = getNMSClass("PlayerInteractManager");
+            Object interactManager = interactManagerClass.getDeclaredConstructors()[0]
+                    .newInstance(worldServer);
+
+            Class<?> entityPlayerClass = getNMSClass("EntityPlayer");
+            Object entityPlayer = entityPlayerClass.getDeclaredConstructor(
+                    getNMSClass("MinecraftServer"),
+                    getNMSClass("WorldServer"),
+                    GameProfile.class,
+                    interactManagerClass
+            ).newInstance(mcServer, worldServer, gameProfile, interactManager);
+
+            entityPlayerClass
+                    .getMethod("setLocation", double.class, double.class, double.class, float.class, float.class)
+                    .invoke(entityPlayer, location.getX(), location.getY(), location.getZ(), location.getYaw(), location.getPitch());
+
+            return entityPlayer;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    public static Object getEntityPlayer(Player player) {
+        try {
+            Class<?> craftPlayerClass = getOBCClass("entity.CraftPlayer");
+            Object craftPlayer = craftPlayerClass.cast(player);
+            return craftPlayerClass.getDeclaredMethod("getHandle").invoke(craftPlayer);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
         }
     }
 }

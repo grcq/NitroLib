@@ -3,11 +3,13 @@ package dev.grcq.nitrolib.spigot.npc;
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import dev.grcq.nitrolib.core.annotations.Inject;
+import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.spigot.NitroSpigot;
 import dev.grcq.nitrolib.spigot.hologram.Hologram;
 import dev.grcq.nitrolib.spigot.utils.NMSUtil;
@@ -100,6 +102,24 @@ public class NPC {
 
         this.location = location;
         this.action = action;
+
+        GameProfile profile = new GameProfile(UUID.randomUUID(), id);
+        if (texture != null && signature != null) {
+            Property property = new Property("textures", texture, signature);
+            profile.getProperties().put("textures", property);
+        }
+
+        this.profile = profile;
+        this.hologram = new Hologram(id, location, lines);
+
+        this.entity = NMSUtil.createEntityPlayer(NMSUtil.getMCServer(), NMSUtil.getWorldServer(location.getWorld()), profile, location);
+        if (entity == null) throw new RuntimeException("Failed to create NPC entity");
+
+        try {
+            this.entityId = (int) entity.getClass().getDeclaredMethod("getId").invoke(entity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public NPC(@NotNull String id, @NotNull Location location, @Nullable String texture, @Nullable String signature, @Nullable Callable<List<String>> lines, @Nullable NPCAction action) {
@@ -117,6 +137,15 @@ public class NPC {
 
         this.profile = profile;
         this.hologram = new Hologram(id, location, lines);
+
+        this.entity = NMSUtil.createEntityPlayer(NMSUtil.getMCServer(), NMSUtil.getWorldServer(location.getWorld()), profile, location);
+        if (entity == null) throw new RuntimeException("Failed to create NPC entity");
+
+        try {
+            this.entityId = (int) entity.getClass().getDeclaredMethod("getId").invoke(entity);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public void setLocation(@NotNull Location location) {
@@ -145,6 +174,26 @@ public class NPC {
         PacketContainer removePacket = manager.createPacket(PacketType.Play.Server.PLAYER_INFO);
 
         spawnPacket.getIntegers().write(0, entityId);
+        spawnPacket.getUUIDs().write(0, profile.getId());
+        spawnPacket.getDoubles().write(0, location.getX());
+        spawnPacket.getDoubles().write(1, location.getY());
+        spawnPacket.getDoubles().write(2, location.getZ());
+        spawnPacket.getBytes().write(0, (byte) ((int) (location.getYaw() * 256.0F / 360.0F)));
+        spawnPacket.getBytes().write(1, (byte) ((int) (location.getPitch() * 256.0F / 360.0F)));
+
+        prespawnPacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+        prespawnPacket.getPlayerInfoDataLists().write(0, new ArrayList<>());
+
+        removePacket.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+        removePacket.getPlayerInfoDataLists().write(0, new ArrayList<>());
+
+        try {
+            manager.sendServerPacket(player, prespawnPacket);
+            manager.sendServerPacket(player, spawnPacket);
+            manager.sendServerPacket(player, removePacket);
+        } catch (Exception e) {
+            LogUtil.handleException("Failed to spawn NPC for " + player.getName(), e);
+        }
     }
 
     public void despawn() {
@@ -162,7 +211,14 @@ public class NPC {
         ProtocolManager manager = nitro.getProtocolManager();
         if (manager == null) return;
 
+        PacketContainer despawnPacket = manager.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+        despawnPacket.getIntegerArrays().write(0, new int[] {entityId});
 
+        try {
+            manager.sendServerPacket(player, despawnPacket);
+        } catch (Exception e) {
+            LogUtil.handleException("Failed to despawn NPC for " + player.getName(), e);
+        }
     }
 
     @FunctionalInterface

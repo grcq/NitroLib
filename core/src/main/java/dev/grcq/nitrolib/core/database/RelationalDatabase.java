@@ -1,23 +1,28 @@
 package dev.grcq.nitrolib.core.database;
 
+import com.mongodb.lang.Nullable;
+import dev.grcq.nitrolib.core.utils.KeyValue;
+
+import java.util.Collection;
+import java.util.List;
+
 public interface RelationalDatabase extends IDatabase {
 
-    void execute(String query);
     void execute(String query, Object... params);
-    default void execute(QueryBuilder builder) {
-        execute(builder, new Object[0]);
-    }
     default void execute(QueryBuilder builder, Object... params) {
         execute(builder.build(), params);
     }
 
-    void createTable(String name);
+    void createTable(String name, List<KeyValue<String, String>> columns);
+    void createTableORM(Class<?> clazz);
     void dropTable(String name);
 
-    <T> T selectOne(String table, String where);
+    <T> T selectOne(String table, @Nullable String where);
+    <T> Collection<T> selectAll(String table, @Nullable String where);
+
     <T> void insert(String table, T object);
-    <T> void update(String table, T object, String where);
-    void delete(String table, String where);
+    <T> void update(String table, T object, @Nullable String where);
+    void delete(String table, @Nullable String where);
 
     class QueryBuilder {
         private final StringBuilder query;
@@ -28,6 +33,24 @@ public interface RelationalDatabase extends IDatabase {
 
         public static QueryBuilder builder() {
             return new QueryBuilder();
+        }
+
+        public QueryBuilder createTable(String name, List<KeyValue<String, String>> columns) {
+            query.append("CREATE TABLE ").append(name).append(" (");
+            for (int i = 0; i < columns.size(); i++) {
+                KeyValue<String, String> column = columns.get(i);
+                query.append(column.getKey()).append(" ").append(column.getValue());
+                if (i < columns.size() - 1) {
+                    query.append(", ");
+                }
+            }
+            query.append(");");
+            return this;
+        }
+
+        public QueryBuilder dropTable(String name) {
+            query.append("DROP TABLE ").append(name).append(";");
+            return this;
         }
 
         public QueryBuilder select(String... columns) {

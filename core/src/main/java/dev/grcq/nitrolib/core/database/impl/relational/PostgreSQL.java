@@ -1,12 +1,13 @@
 package dev.grcq.nitrolib.core.database.impl.relational;
 
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
+import dev.grcq.nitrolib.core.utils.KeyValue;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 public class PostgreSQL implements RelationalDatabase {
-    @Override
-    public void execute(String query) {
-
-    }
 
     @Override
     public void execute(String query, Object... params) {
@@ -14,7 +15,12 @@ public class PostgreSQL implements RelationalDatabase {
     }
 
     @Override
-    public void createTable(String name) {
+    public void createTable(String name, List<KeyValue<String, String>> columns) {
+
+    }
+
+    @Override
+    public void createTableORM(Class<?> clazz) {
 
     }
 
@@ -51,5 +57,10 @@ public class PostgreSQL implements RelationalDatabase {
     @Override
     public <T> T selectOne(String table, String where) {
         return null;
+    }
+
+    @Override
+    public <T> Collection<T> selectAll(String table, String where) {
+        return Collections.emptyList();
     }
 }
