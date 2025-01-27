@@ -3,14 +3,20 @@ package dev.grcq.nitrolib.core.database;
 import com.mongodb.lang.Nullable;
 import dev.grcq.nitrolib.core.utils.KeyValue;
 
+import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.List;
 
 public interface RelationalDatabase extends IDatabase {
 
-    void execute(String query, Object... params);
-    default void execute(QueryBuilder builder, Object... params) {
+    ResultSet execute(String query, Object... params);
+    default ResultSet execute(QueryBuilder builder, Object... params) {
         execute(builder.build(), params);
+    }
+
+    void update(String query, Object... params);
+    default void update(QueryBuilder builder, Object... params) {
+        update(builder.build(), params);
     }
 
     void createTable(String name, List<KeyValue<String, String>> columns);

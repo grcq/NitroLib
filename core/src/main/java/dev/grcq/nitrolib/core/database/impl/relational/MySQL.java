@@ -11,10 +11,7 @@ import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -27,25 +24,27 @@ public class MySQL implements RelationalDatabase {
     private String host;
     private String user;
     private String password;
+    private String database;
     private List<KeyValue<String, String>> params;
 
-    public MySQL(String host, int port, String user, String password) {
-        this(host + ":" + port, user, password, Collections.emptyList());
+    public MySQL(String database, String host, int port, String user, String password) {
+        this(database, host + ":" + port, user, password, Collections.emptyList());
     }
 
-    public MySQL(String host, String user, String password) {
-        this(host, user, password, Collections.emptyList());
+    public MySQL(String database, String host, String user, String password) {
+        this(database, host, user, password, Collections.emptyList());
     }
 
-    public MySQL(String host, int port, String user, String password, List<KeyValue<String, String>> params) {
-        this(host + ":" + port, user, password, params);
+    public MySQL(String database, String host, int port, String user, String password, List<KeyValue<String, String>> params) {
+        this(database, host + ":" + port, user, password, params);
     }
 
-    public MySQL(String host, String user, String password, List<KeyValue<String, String>> params) {
-        this.host = host;
+    public MySQL(String database, String host, String user, String password, List<KeyValue<String, String>> params) {
+        this.host = host.split(":").length == 1 ? host + ":3306" : host;
         this.user = user;
         this.password = password;
         this.params = params;
+        this.database = database;
     }
 
     @Override
@@ -60,10 +59,12 @@ public class MySQL implements RelationalDatabase {
         }
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
-            this.connection = DriverManager.getConnection("jdbc:mysql://" + host + "?" + params, user, password);
+            this.connection = DriverManager.getConnection("jdbc:mysql://" + host + "/" + database + "?" + params, user, password);
         } catch (ClassNotFoundException | SQLException e) {
             LogUtil.handleException("Failed to connect to MySQL database", e);
         }
+
+
     }
 
     @Override
@@ -77,7 +78,7 @@ public class MySQL implements RelationalDatabase {
     }
 
     @Override
-    public void execute(String query, Object... params) {
+    public ResultSet execute(String query, Object... params) {
         Preconditions.checkNotNull(this.connection, "Connection is null");
         try {
             PreparedStatement statement = this.connection.prepareStatement(query);
@@ -85,10 +86,25 @@ public class MySQL implements RelationalDatabase {
                 statement.setObject(i + 1, params[i]);
             }
 
-            statement.execute();
-            statement.close();
+            return statement.executeQuery();
         } catch (SQLException e) {
             LogUtil.handleException("Failed to execute query", e);
+            return null;
+        }
+    }
+
+    @Override
+    public void update(String query, Object... params) {
+        Preconditions.checkNotNull(this.connection, "Connection is null");
+        try {
+            PreparedStatement statement = this.connection.prepareStatement(query);
+            for (int i = 0; i < params.length; i++) {
+                statement.setObject(i + 1, params[i]);
+            }
+
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            LogUtil.handleException("Failed to execute update", e);
         }
     }
 
@@ -96,7 +112,7 @@ public class MySQL implements RelationalDatabase {
     public void createTable(String name, List<KeyValue<String, String>> columns) {
         QueryBuilder builder = QueryBuilder.builder()
                 .createTable(name, columns);
-        execute(builder);
+        update(builder);
     }
 
     @Override
@@ -116,42 +132,45 @@ public class MySQL implements RelationalDatabase {
             Column column = field.getAnnotation(Column.class);
             String columnName = column.value().isEmpty() ? field.getName().toLowerCase() : column.value();
             boolean nullable = column.nullable();
+            int length = column.length();
 
+            KeyValue<String, String> id = null;
             switch (field.getType().getSimpleName()) {
                 case "String":
-                    columns.add(KeyValue.of(columnName, "VARCHAR(255)" + (nullable ? "" : " NOT NULL")));
+                    Preconditions.checkArgument(length > 0, "Column length must be greater than 0");
+                    id = KeyValue.of(columnName, (length == Integer.MAX_VALUE ? "TEXT" : "VARCHAR(" + length + ")") + (nullable ? "" : " NOT NULL"));
                     break;
                 case "int":
                 case "Integer":
-                    columns.add(KeyValue.of(columnName, "INT" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "INT" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "long":
                 case "Long":
-                    columns.add(KeyValue.of(columnName, "BIGINT" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "BIGINT" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "boolean":
                 case "Boolean":
-                    columns.add(KeyValue.of(columnName, "BOOLEAN" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "BOOLEAN" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "double":
                 case "Double":
-                    columns.add(KeyValue.of(columnName, "DOUBLE" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "DOUBLE" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "float":
                 case "Float":
-                    columns.add(KeyValue.of(columnName, "FLOAT" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "FLOAT" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "short":
                 case "Short":
-                    columns.add(KeyValue.of(columnName, "SMALLINT" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "SMALLINT" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "byte":
                 case "Byte":
-                    columns.add(KeyValue.of(columnName, "TINYINT" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "TINYINT" + (nullable ? "" : " NOT NULL"));
                     break;
                 case "char":
                 case "Character":
-                    columns.add(KeyValue.of(columnName, "CHAR(1)" + (nullable ? "" : " NOT NULL")));
+                    id = KeyValue.of(columnName, "CHAR(1)" + (nullable ? "" : " NOT NULL"));
                     break;
                 default:
                     if (field.getType().isAnnotationPresent(Entity.class)) {
@@ -162,6 +181,15 @@ public class MySQL implements RelationalDatabase {
                     LogUtil.warn("Unsupported column type: " + field.getType().getSimpleName());
                     break;
             }
+
+            if (id != null) {
+                if (field.isAnnotationPresent(Id.class)) {
+                    Id anno = field.getAnnotation(Id.class);
+                    id.setValue(id.getValue() + (anno.autoIncrement() ? " AUTO_INCREMENT " : " ") + "PRIMARY KEY");
+                }
+
+                columns.add(id);
+            }
         }
 
         createTable(tableName, columns);
@@ -171,7 +199,7 @@ public class MySQL implements RelationalDatabase {
     public void dropTable(String name) {
         QueryBuilder builder = QueryBuilder.builder()
                 .dropTable(name);
-        execute(builder);
+        update(builder);
     }
 
     @Override
@@ -179,7 +207,8 @@ public class MySQL implements RelationalDatabase {
         QueryBuilder builder = QueryBuilder.builder()
                 .insert(table);
 
-
+        for (Field field : object.getClass().getDeclaredFields()) {
+        }
     }
 
     @Override

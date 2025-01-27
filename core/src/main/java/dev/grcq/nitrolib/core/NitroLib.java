@@ -7,7 +7,10 @@ import com.google.gson.LongSerializationPolicy;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
+import dev.grcq.nitrolib.core.database.RelationalDatabase;
+import dev.grcq.nitrolib.core.database.impl.relational.MySQL;
 import dev.grcq.nitrolib.core.inject.InjectHandler;
+import dev.grcq.nitrolib.core.tests.database.TestEntity;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -64,6 +67,10 @@ public class NitroLib {
 
         //TestClass testClass = new TestClass();
         //System.out.println(testClass.getOptions());
+
+        RelationalDatabase database = new MySQL("testgrcq", "194.163.177.10", "testgrcq", "testing");
+        database.connect();
+        database.createTableORM(TestEntity.class);
 
         LogUtil.info("NitroLib initialized!");
     }

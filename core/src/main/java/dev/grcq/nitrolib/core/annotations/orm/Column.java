@@ -17,4 +17,11 @@ public @interface Column {
      * @return defines if the column is nullable
      */
     boolean nullable() default true;
+
+    /**
+     * This will only apply to String fields.
+     * If the value is Integer.MAX_VALUE, the column will be a TEXT column only if it's a String.
+     * @return defines the length of the column (ex. VARCHAR(255))
+     */
+    int length() default 255;
 }

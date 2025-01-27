@@ -3,6 +3,7 @@ package dev.grcq.nitrolib.core.database.impl.relational;
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
 import dev.grcq.nitrolib.core.utils.KeyValue;
 
+import java.sql.ResultSet;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -10,7 +11,12 @@ import java.util.List;
 public class PostgreSQL implements RelationalDatabase {
 
     @Override
-    public void execute(String query, Object... params) {
+    public ResultSet execute(String query, Object... params) {
+        return null;
+    }
+
+    @Override
+    public void update(String query, Object... params) {
 
     }
 

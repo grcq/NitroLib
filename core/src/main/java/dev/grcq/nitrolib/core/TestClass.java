@@ -6,7 +6,7 @@ import lombok.Getter;
 
 public class TestClass {
 
-    @Inject
+    //@Inject
     @Getter
     private NitroOptions options;
 
