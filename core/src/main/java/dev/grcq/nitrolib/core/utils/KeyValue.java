@@ -13,4 +13,5 @@ public class KeyValue<K, V> {
     public static <K, V> KeyValue<K, V> of(K key, V value) {
         return new KeyValue<>(key, value);
     }
+
 }

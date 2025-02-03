@@ -1,7 +1,9 @@
 package dev.grcq.nitrolib.core.database.impl.relational;
 
+import dev.grcq.nitrolib.core.database.Condition;
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
 import dev.grcq.nitrolib.core.utils.KeyValue;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.ResultSet;
 import java.util.Collection;
@@ -16,12 +18,12 @@ public class PostgreSQL implements RelationalDatabase {
     }
 
     @Override
-    public void update(String query, Object... params) {
+    public void updateQuery(String query, Object... params) {
 
     }
 
     @Override
-    public void createTable(String name, List<KeyValue<String, String>> columns) {
+    public void createTable(String name, List<KeyValue<String, String>> columns, boolean ifNotExists) {
 
     }
 
@@ -36,17 +38,22 @@ public class PostgreSQL implements RelationalDatabase {
     }
 
     @Override
-    public <T> void insert(String table, T object) {
+    public <T> void insert(T object) {
 
     }
 
     @Override
-    public <T> void update(String table, T object, String where) {
+    public <T> T create(Class<T> clazz, List<KeyValue<String, Object>> columns) {
+        return null;
+    }
+
+    @Override
+    public <T> void update(T object, @Nullable Condition[] where) {
 
     }
 
     @Override
-    public void delete(String table, String where) {
+    public void delete(String table, @Nullable Condition[] where) {
 
     }
 
@@ -61,12 +68,12 @@ public class PostgreSQL implements RelationalDatabase {
     }
 
     @Override
-    public <T> T selectOne(String table, String where) {
+    public <T> T selectOne(Class<T> clazz, @Nullable Condition[] where) {
         return null;
     }
 
     @Override
-    public <T> Collection<T> selectAll(String table, String where) {
+    public <T> Collection<T> selectAll(Class<T> clazz, @Nullable Condition[] where) {
         return Collections.emptyList();
     }
 }

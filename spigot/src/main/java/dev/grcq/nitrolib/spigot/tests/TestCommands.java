@@ -72,4 +72,14 @@ public class TestCommands {
         hologram.spawn();
     }
 
+    @Command("gui")
+    public void gui(Player player) {
+        new TestGUI().open(player);
+    }
+
+    @Command("pagegui")
+    public void pageGUI(Player player) {
+        new TestPagGUI().open(player);
+    }
+
 }

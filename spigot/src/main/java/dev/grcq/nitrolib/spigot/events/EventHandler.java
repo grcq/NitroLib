@@ -9,11 +9,15 @@ import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 
 public class EventHandler {
 
+    private static final Map<Method, Long> debounceMap = new HashMap<>();
     private static final Listener listener = new Listener() {};
 
     public static void registerAll(JavaPlugin plugin) {
@@ -65,13 +69,24 @@ public class EventHandler {
 
         Class<? extends org.bukkit.event.Event> finalEventClass = (Class<? extends org.bukkit.event.Event>) eventClass;
         pluginManager.registerEvent(finalEventClass, listener, event.priority(), (listener, e) -> {
-            if (e instanceof Cancellable) {
+            if (e == null || finalInstance == null) return;
+            if (e instanceof Cancellable && !event.ignoreCancelled()) {
                 Cancellable cancellable = (Cancellable) e;
-                if (cancellable.isCancelled() && !event.ignoreCancelled()) return;
+                if (cancellable.isCancelled()) return;
+            }
+
+            if (event.debounce() > 0) {
+                long debounce = debounceMap.getOrDefault(method, 0L);
+                if (System.currentTimeMillis() - debounce < (event.debounce() * 1000L)) return;
             }
 
             try {
+                if (!method.isAccessible()) method.setAccessible(true);
                 method.invoke(finalInstance, e);
+            } catch (InvocationTargetException ex) {
+                if (ex.getMessage() == null || ex.getMessage().equals("null")) return;
+
+                LogUtil.handleException("Failed to invoke event method: " + method.getName(), ex);
             } catch (Exception ex) {
                 LogUtil.handleException("Failed to invoke event method: " + method.getName(), ex);
             }

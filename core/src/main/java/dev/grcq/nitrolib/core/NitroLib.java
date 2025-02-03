@@ -7,10 +7,12 @@ import com.google.gson.LongSerializationPolicy;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
+import dev.grcq.nitrolib.core.database.Condition;
 import dev.grcq.nitrolib.core.database.RelationalDatabase;
 import dev.grcq.nitrolib.core.database.impl.relational.MySQL;
 import dev.grcq.nitrolib.core.inject.InjectHandler;
 import dev.grcq.nitrolib.core.tests.database.TestEntity;
+import dev.grcq.nitrolib.core.utils.KeyValue;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
@@ -19,6 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.lang.management.ManagementFactory;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 public class NitroLib {
@@ -65,12 +69,20 @@ public class NitroLib {
         configurationHandler.loadConfiguration(mainClass);
         LogUtil.info("Handlers loaded!");
 
-        //TestClass testClass = new TestClass();
+        //TestClass testClass = n ew TestClass();
         //System.out.println(testClass.getOptions());
 
-        RelationalDatabase database = new MySQL("testgrcq", "194.163.177.10", "testgrcq", "testing");
+        /*RelationalDatabase database = new MySQL("a", "a", "a", "a");
         database.connect();
         database.createTableORM(TestEntity.class);
+
+        TestEntity entity = database.create(TestEntity.class, Arrays.asList(
+                KeyValue.of("name", "Test"),
+                KeyValue.of("age", 20),
+                KeyValue.of("active", true),
+                KeyValue.of("balance", 100.0)
+        ));
+        System.out.println(entity);*/
 
         LogUtil.info("NitroLib initialized!");
     }

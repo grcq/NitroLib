@@ -15,7 +15,55 @@ public class Condition {
     private boolean nextIsOr = false;
 
     public String toString() {
-        return key + " " + operator + " " + (value instanceof String ? "'" + value + "'" : value);
+        return key + " " + operator + " " + (value instanceof String || value instanceof Character ? "'" + value.toString().replaceAll("'", "\\\\'").replaceAll("\"", "\\\\\"") + "'" : value);
+    }
+
+    public static Condition of(String key, String operator, Object value) {
+        return new Condition(key, operator, value);
+    }
+
+    public static Condition of(String key, String operator, Object value, boolean nextIsOr) {
+        return new Condition(key, operator, value, nextIsOr);
+    }
+
+    public static Condition eq(String key, Object value) {
+        return of(key, Operators.EQUALS, value);
+    }
+
+    public static Condition neq(String key, Object value) {
+        return of(key, Operators.NOT_EQUALS, value);
+    }
+
+    public static Condition gt(String key, Object value) {
+        return of(key, Operators.GREATER_THAN, value);
+    }
+
+    public static Condition lt(String key, Object value) {
+        return of(key, Operators.LESS_THAN, value);
+    }
+
+    public static Condition gte(String key, Object value) {
+        return of(key, Operators.GREATER_THAN_OR_EQUALS, value);
+    }
+
+    public static Condition lte(String key, Object value) {
+        return of(key, Operators.LESS_THAN_OR_EQUALS, value);
+    }
+
+    public static Condition like(String key, Object value) {
+        return of(key, Operators.LIKE, value);
+    }
+
+    public static Condition notLike(String key, Object value) {
+        return of(key, Operators.NOT_LIKE, value);
+    }
+
+    public static Condition in(String key, Object value) {
+        return of(key, Operators.IN, value);
+    }
+
+    public static Condition notIn(String key, Object value) {
+        return of(key, Operators.NOT_IN, value);
     }
 
     public interface Operators {
