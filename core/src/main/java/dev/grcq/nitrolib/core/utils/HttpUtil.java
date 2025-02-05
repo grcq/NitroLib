@@ -24,7 +24,7 @@ public class HttpUtil {
             connection.connect();
             int responseCode = connection.getResponseCode();
             if (responseCode != 200) {
-                LogUtil.error("Failed to get JSON from URL '%s' with code %d", responseCode, urlString);
+                LogUtil.error("Failed to get JSON from URL '%s' with code %d", -1, urlString, responseCode);
                 return null;
             }
 

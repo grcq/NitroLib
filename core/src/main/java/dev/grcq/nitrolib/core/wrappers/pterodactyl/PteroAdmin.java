@@ -1,7 +1,7 @@
 package dev.grcq.nitrolib.core.wrappers.pterodactyl;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.common.collect.ImmutableList;
+import com.google.gson.*;
 import dev.grcq.nitrolib.core.NitroLib;
 import dev.grcq.nitrolib.core.utils.HttpUtil;
 import dev.grcq.nitrolib.core.wrappers.pterodactyl.admin.server.Server;
@@ -13,6 +13,11 @@ import java.util.List;
 import java.util.Map;
 
 public class PteroAdmin {
+
+    static final Gson GSON = new GsonBuilder()
+            // adapters here
+            .setLongSerializationPolicy(LongSerializationPolicy.STRING)
+            .create();
 
     private final String apiEndpoint;
     private final String apiKey;
@@ -32,7 +37,7 @@ public class PteroAdmin {
     public List<Server> getServers() {
         String endpoint = this.apiEndpoint + "/servers";
         JsonObject response = HttpUtil.getJson(endpoint, this.headers);
-        if (response == null) return null;
+        if (response == null) return ImmutableList.of();
 
         List<Server> servers = new ArrayList<>();
         JsonArray data = response.getAsJsonArray("data");
@@ -41,11 +46,11 @@ public class PteroAdmin {
             servers.add(NitroLib.GSON.fromJson(server, Server.class));
         }
 
-        return servers;
+        return ImmutableList.copyOf(servers);
     }
 
     @Nullable
-    public Server getServer(String id) {
+    public Server getServer(int id) {
         String endpoint = this.apiEndpoint + "/servers/" + id;
         JsonObject response = HttpUtil.getJson(endpoint, this.headers);
         if (response == null) return null;
