@@ -2,7 +2,7 @@ package dev.grcq.nitrolib.spigot.tests;
 
 import com.google.common.collect.Lists;
 import dev.grcq.nitrolib.spigot.command.annotations.Command;
-import dev.grcq.nitrolib.spigot.command.annotations.Schedule;
+import dev.grcq.nitrolib.spigot.schedulers.Schedule;
 import dev.grcq.nitrolib.spigot.events.Event;
 import dev.grcq.nitrolib.spigot.scoreboard.NitroPlayerBoard;
 import org.bukkit.Bukkit;

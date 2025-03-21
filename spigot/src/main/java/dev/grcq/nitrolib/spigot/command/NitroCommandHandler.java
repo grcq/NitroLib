@@ -1,6 +1,5 @@
 package dev.grcq.nitrolib.spigot.command;
 
-import com.google.common.collect.Lists;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.core.utils.Util;
 import dev.grcq.nitrolib.spigot.command.annotations.Command;

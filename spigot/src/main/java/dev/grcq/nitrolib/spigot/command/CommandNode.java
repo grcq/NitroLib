@@ -1,7 +1,6 @@
 package dev.grcq.nitrolib.spigot.command;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import dev.grcq.nitrolib.core.utils.LogUtil;

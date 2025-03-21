@@ -1,4 +1,4 @@
-package dev.grcq.nitrolib.spigot.command.annotations;
+package dev.grcq.nitrolib.spigot.schedulers;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
