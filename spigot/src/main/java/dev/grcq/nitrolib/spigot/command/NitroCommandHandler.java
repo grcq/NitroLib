@@ -7,9 +7,11 @@ import dev.grcq.nitrolib.spigot.command.parameters.TypeParameter;
 import dev.grcq.nitrolib.spigot.command.parameters.impl.IntegerType;
 import dev.grcq.nitrolib.spigot.command.parameters.impl.PlayerType;
 import dev.grcq.nitrolib.spigot.command.parameters.impl.StringType;
+import dev.grcq.nitrolib.spigot.command.parameters.impl.WorldType;
 import lombok.Getter;
 import lombok.Setter;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.CommandMap;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.SimplePluginManager;
@@ -36,6 +38,7 @@ public class NitroCommandHandler {
         register(Player.class, new PlayerType());
         register(Integer.class, new IntegerType());
         register(int.class, new IntegerType());
+        register(World.class, new WorldType());
     }
 
     protected static CommandNode getCommand(String name) {

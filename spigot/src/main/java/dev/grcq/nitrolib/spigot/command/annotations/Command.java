@@ -22,6 +22,7 @@ public @interface Command {
 
     boolean hidden() default false;
     boolean async() default false;
+    @Deprecated
     boolean baseExecutor() default false;
 
     int cooldown() default 0;

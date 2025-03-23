@@ -12,7 +12,7 @@ public enum ServerState {
     INSTALLING("installing"),
     SUSPENDED("suspended"),
     INSTALL_FAILED("install_failed"),
-    RUNNING("started"),
+    RUNNING("running"),
     STARTING("starting"),
     STOPPING("stopping"),
     STOPPED("offline"),

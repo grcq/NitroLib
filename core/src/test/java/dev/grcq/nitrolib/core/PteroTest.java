@@ -13,8 +13,8 @@ import static org.junit.Assert.*;
 
 public class PteroTest {
 
-    private final PteroAdmin admin = new PteroAdmin("", "");
-    private final PteroUser user = new PteroUser("", "zh02u7s1IYqFmHbe3LbebmSEsBnA6HzV");
+    private final PteroAdmin admin = new PteroAdmin("https://panel.ezerium.com/", "ptla_bJ6XBshbpE42ZWi6NwRrokgfDeejst0pCEP9vzCck1X");
+    private final PteroUser user = new PteroUser("https://panel.ezerium.com/", "ptlc_qFtGJdPrYZRzh02u7s1IYqFmHbe3LbebmSEsBnA6HzV");
 
     @Test
     public void testServers() {
@@ -37,12 +37,13 @@ public class PteroTest {
     @Test
     public void testUserServers() {
         List<UserServer> servers = user.getServers();
-        System.out.println(servers);
         assertNotNull(servers);
         assertFalse(servers.isEmpty());
 
-        UserServer first = servers.get(0);
-        assertEquals("Akero Test", first.getName());
-        assertEquals(ServerState.STOPPED, user.getServerState(first));
+        UserServer first = user.getServer("c4bdb014");
+        assertEquals("sf4", first.getName());
+        assertEquals(ServerState.RUNNING, user.getServerState(first));
     }
+
+
 }

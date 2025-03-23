@@ -20,8 +20,8 @@ public @interface Command {
     String usage() default "";
     String example() default "";
 
-    boolean hidden() default false;
     boolean async() default false;
+    @Deprecated
     boolean baseExecutor() default false;
 
     int cooldown() default 0;
