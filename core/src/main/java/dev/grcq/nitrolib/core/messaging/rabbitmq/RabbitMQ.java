@@ -245,8 +245,7 @@ public class RabbitMQ implements MessagingClient {
         this.listeners.remove(listener);
     }
 
-    @Override
-    public void listen() throws Exception {
+    private void listen() throws Exception {
         Preconditions.checkNotNull(this.channel, "[RabbitMQ] Channel is not connected");
         Preconditions.checkState(this.listener == null || !this.listener.isAlive(), "[RabbitMQ] Listener is already running");
 
@@ -268,9 +267,12 @@ public class RabbitMQ implements MessagingClient {
                             if (response != null && !response.offer(packet)) {
                                 LogUtil.warn("[RabbitMQ] Failed to offer response packet for %s", packet.getIdentifier());
                             }
+                        } if (correlationId != null) {
+                            // respond
+
                         } else {
                             for (PacketListener listener : this.listeners) {
-                                this.handlePacket(listener, packet);
+                                handlePacket(listener, packet);
                             }
                         }
                     }
@@ -280,38 +282,5 @@ public class RabbitMQ implements MessagingClient {
             }
         });
         this.listener.start();
-    }
-
-    private void handlePacket(PacketListener listener, IPacket packet) {
-        for (Method method : listener.getClass().getDeclaredMethods()) {
-            if (!method.isAnnotationPresent(Packet.class)) continue;
-
-            Packet annotation = method.getAnnotation(Packet.class);
-            if (!annotation.value().equals(packet.getIdentifier())) continue;
-
-            if (method.getParameterCount() != 1) {
-                LogUtil.warn("[RabbitMQ] Method %s is annotated with @Packet and has %d parameters.", method.getName());
-                LogUtil.warn("[RabbitMQ] If this is not intentional, please add one parameter of IPacket or any subtype of JsonElement", method.getName());
-                continue;
-            }
-
-            Class<?> parameter = method.getParameterTypes()[0];
-            if (parameter != IPacket.class && !JsonElement.class.isAssignableFrom(parameter)) {
-                LogUtil.warn("[RabbitMQ] Method %s is annotated with @Packet and has a parameter that is not IPacket or any subtype of JsonElement", method.getName());
-                continue;
-            }
-
-            try {
-                method.setAccessible(true);
-                Object instance = Modifier.isStatic(method.getModifiers()) ? null : listener;
-                if (parameter == IPacket.class) {
-                    method.invoke(instance, packet);
-                } else {
-                    method.invoke(instance, packet.getPayload());
-                }
-            } catch (Exception e) {
-                LogUtil.handleException("[RabbitMQ] Failed to handle packet", e);
-            }
-        }
     }
 }

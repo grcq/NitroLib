@@ -12,5 +12,6 @@ public @interface FlagValue {
     String arg();
 
     String def() default "";
+    String pattern() default "";
     boolean required() default true;
 }

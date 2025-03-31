@@ -75,6 +75,10 @@ public class ArgumentParser {
                         value = value.trim();
                     }
 
+                    if (!flagValue.pattern().isEmpty() && !value.matches(flagValue.pattern())) {
+                        return null;
+                    }
+
                     Object parsed = parse(sender, flags.toArray(new String[0]), value, param.getType());
                     if (parsed == null) return null;
 
@@ -90,45 +94,52 @@ public class ArgumentParser {
                 Arg arg = param.getAnnotation(Arg.class);
                 String argName = arg.value();
 
+                String argValue;
+                boolean required = arg.required();
                 if (arguments.isEmpty()) {
                     if (arg.required() && arg.def().isEmpty()) return new ArrayList<>();
-                    data.add(new ArgData(argName, arg.def().isEmpty() ? null : arg.def(), false));
-                    continue;
-                }
 
-                String argValue = arguments.remove(0);
-                if (argValue.startsWith("\"")) {
-                    if (argValue.endsWith("\"")) argValue = argValue.substring(1, argValue.length() - 1);
-                    else {
-                        StringBuilder builder = new StringBuilder(argValue);
-                        while (!builder.toString().endsWith("\"")) {
-                            if (arguments.isEmpty()) {
-                                LogUtil.error("Invalid parameter. Ensure all parameters are annotated with either @Arg, @Flag, or @FlagValue.");
-                                return new ArrayList<>();
+                    required = false;
+                    argValue = arg.def();
+                } else {
+                    argValue = arguments.remove(0);
+                    if (argValue.startsWith("\"")) {
+                        if (argValue.endsWith("\"")) argValue = argValue.substring(1, argValue.length() - 1);
+                        else {
+                            StringBuilder builder = new StringBuilder(argValue);
+                            while (!builder.toString().endsWith("\"")) {
+                                if (arguments.isEmpty()) {
+                                    LogUtil.error("Invalid parameter. Ensure all parameters are annotated with either @Arg, @Flag, or @FlagValue.");
+                                    return new ArrayList<>();
+                                }
+
+                                builder.append(" ").append(arguments.remove(0));
                             }
 
-                            builder.append(" ").append(arguments.remove(0));
+                            argValue = builder.substring(1, builder.length() - 1);
                         }
 
-                        argValue = builder.substring(1, builder.length() - 1);
-                    }
+                        argValue = argValue.trim();
+                    } else {
+                        if (arg.wildcard()) {
+                            StringBuilder builder = new StringBuilder(argValue);
+                            while (!arguments.isEmpty()) {
+                                builder.append(" ").append(arguments.remove(0));
+                            }
 
-                    argValue = argValue.trim();
-                } else {
-                    if (arg.wildcard()) {
-                        StringBuilder builder = new StringBuilder(argValue);
-                        while (!arguments.isEmpty()) {
-                            builder.append(" ").append(arguments.remove(0));
+                            argValue = builder.toString();
                         }
-
-                        argValue = builder.toString();
                     }
+                }
+
+                if (!arg.pattern().isEmpty() && !argValue.matches(arg.pattern())) {
+                    return null;
                 }
 
                 Object parsed = parse(sender, flags.toArray(new String[0]), argValue, param.getType());
                 if (parsed == null) return null;
 
-                data.add(new ArgData(argName, parsed, arg.required()));
+                data.add(new ArgData(argName, parsed, required));
                 continue;
             }
 

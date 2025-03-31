@@ -6,6 +6,7 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.URI;
 import java.util.List;
 
 @Data
@@ -89,7 +90,7 @@ public class URIHelper {
         this(protocol, host, null, null, null, null, null, null);
     }
 
-    public String toURI() {
+    public String getURI() {
         StringBuilder uri = new StringBuilder();
         uri.append(protocol).append("://");
         if (username != null) {
@@ -125,4 +126,7 @@ public class URIHelper {
         return uri.toString();
     }
 
+    public URI toURI() {
+        return URI.create(getURI());
+    }
 }

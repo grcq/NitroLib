@@ -10,11 +10,42 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.nio.file.Files;
+import java.util.List;
 
 public class FileSerializer {
 
+    public <T> FileObject serialize(List<T> objects) {
+        return serialize(objects, AdapterContext.DEFAULT);
+    }
+
     public <T> FileObject serialize(T object) {
         return serialize(object, AdapterContext.DEFAULT);
+    }
+
+    public <T> FileObject serialize(List<T> objects, AdapterContext context) {
+        FileObject fileObject = new FileObject();
+        if (objects.isEmpty()) return fileObject;
+
+        Serializable annotation = objects.get(0).getClass().getAnnotation(Serializable.class);
+        if (annotation == null) {
+            LogUtil.error("Class is not serializable: " + objects.get(0).getClass().getName());
+            return null;
+        }
+
+        String key = annotation.value();
+        if (key.isEmpty()) {
+            LogUtil.error("Key is empty: " + objects.get(0).getClass().getName());
+            return null;
+        }
+
+        FileArray array = new FileArray();
+        for (T object : objects) {
+            FileObject obj = serialize(object, context);
+            array.add(obj);
+        }
+
+        fileObject.add(key, array);
+        return fileObject;
     }
 
     public <T> FileObject serialize(T object, AdapterContext context) {
@@ -111,8 +142,42 @@ public class FileSerializer {
         }
     }
 
+    public <T> void serialize(List<T> objects, File file) {
+        serialize(objects, file, AdapterContext.DEFAULT);
+    }
+
     public <T> void serialize(T object, File file) {
         serialize(object, file, AdapterContext.DEFAULT);
+    }
+
+    public <T> void serialize(List<T> objects, File file, AdapterContext context) {
+        if (!file.exists()) {
+            try {
+                File parent = file.getParentFile();
+                if (parent != null && !parent.exists()) parent.mkdirs();
+
+                file.createNewFile();
+            } catch (IOException e) {
+                LogUtil.handleException("Failed to create file: " + file.getName(), e);
+                return;
+            }
+        }
+        FileObject fileObject = serialize(objects, context);
+        String name = file.getName();
+        String extension = name.substring(name.lastIndexOf(".") + 1);
+        switch (extension) {
+            case "json":
+                String json = fileObject.toJson();
+                writeToFile(json, file);
+                break;
+            case "yml":
+            case "yaml":
+                String yaml = fileObject.toYaml();
+                writeToFile(yaml, file);
+                break;
+            default:
+                break;
+        }
     }
 
     public <T> void serialize(T object, File file, AdapterContext context) {

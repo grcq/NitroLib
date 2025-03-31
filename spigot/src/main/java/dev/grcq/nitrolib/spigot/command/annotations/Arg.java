@@ -20,6 +20,11 @@ public @interface Arg {
     String def() default "";
 
     /**
+     * @return The regex pattern of the argument.
+     */
+    String pattern() default "";
+
+    /**
      * This will be ignored if `def` is not empty.
      * @return Whether the argument is required or not.
      */

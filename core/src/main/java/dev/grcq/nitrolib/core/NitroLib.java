@@ -71,6 +71,8 @@ public class NitroLib {
         InjectHandler injectHandler = new InjectHandler(mainClass);
         injectHandler.inject();
 
+        TestClass.getInstance().test();
+
         configurationHandler.loadConfiguration(mainClass);
         LogUtil.info("Handlers loaded!");
 

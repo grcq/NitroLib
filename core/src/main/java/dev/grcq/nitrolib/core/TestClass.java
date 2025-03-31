@@ -2,14 +2,12 @@ package dev.grcq.nitrolib.core;
 
 import dev.grcq.nitrolib.core.annotations.Cached;
 import dev.grcq.nitrolib.core.annotations.Inject;
+import dev.grcq.nitrolib.core.annotations.Singleton;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import lombok.Getter;
 
+@Singleton
 public class TestClass {
-
-    //@Inject
-    @Getter
-    private NitroOptions options;
 
     @Cached
     public String test(int i) {
@@ -17,4 +15,8 @@ public class TestClass {
         return "Number: " + i;
     }
 
+    public void test() {
+        System.out.println("Hello World!");
+    }
 }
+

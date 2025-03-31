@@ -18,24 +18,7 @@
 
     <build>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                </configuration>
-            </plugin>
+
             <plugin>
                 <groupId>de.icongmbh.oss.maven.plugins</groupId>
                 <artifactId>javassist-maven-plugin</artifactId>
@@ -46,6 +29,7 @@
                         <transformerClass>
                             <className>dev.grcq.nitrolib.core.bytecode.InjectTransformer</className>
                             <className>dev.grcq.nitrolib.core.bytecode.CacheTransformer</className>
+                            <className>dev.grcq.nitrolib.core.bytecode.SingletonTransformer</className>
                         </transformerClass>
                     </transformerClasses>
                 </configuration>
@@ -63,23 +47,22 @@
                 </executions>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>exec-maven-plugin</artifactId>
-                <version>3.1.0</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
                 <executions>
                     <execution>
-                        <id>run-with-javassist</id>
+                        <id>compile</id>
+                        <phase>compile</phase>
                         <goals>
-                            <goal>java</goal>
+                            <goal>compile</goal>
                         </goals>
-                        <configuration>
-                            <preGoals>
-                                <goal>javassist:process</goal>
-                            </preGoals>
-                            <mainClass>dev.grcq.nitrolib.core.NitroLib</mainClass>
-                        </configuration>
                     </execution>
                 </executions>
+                <configuration>
+                    <source>${java.version}</source>
+                    <target>${java.version}</target>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
