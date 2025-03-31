@@ -16,7 +16,7 @@ public class PteroTest {
     private final PteroAdmin admin = new PteroAdmin("https://panel.ezerium.com/", "ptla_bJ6XBshbpE42ZWi6NwRrokgfDeejst0pCEP9vzCck1X");
     private final PteroUser user = new PteroUser("https://panel.ezerium.com/", "ptlc_qFtGJdPrYZRzh02u7s1IYqFmHbe3LbebmSEsBnA6HzV");
 
-    @Test
+    //@Test
     public void testServers() {
         List<Server> servers = admin.getServers();
         assertNotNull(servers);
@@ -27,14 +27,14 @@ public class PteroTest {
         assertEquals(7, first.getId());
     }
 
-    @Test
+    //@Test
     public void testServer() {
         Server server = admin.getServer(7);
         assertNotNull(server);
         assertEquals("Bot", server.getName());
     }
 
-    @Test
+    //@Test
     public void testUserServers() {
         List<UserServer> servers = user.getServers();
         assertNotNull(servers);

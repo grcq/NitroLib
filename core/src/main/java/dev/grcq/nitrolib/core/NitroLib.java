@@ -4,6 +4,7 @@ import com.google.common.base.Preconditions;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.LongSerializationPolicy;
+import dev.grcq.nitrolib.core.cache.CacheManager;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
@@ -33,6 +34,9 @@ public class NitroLib {
     @Getter
     private static final NitroOptions options = new NitroOptions();
 
+    @Getter
+    private static CacheManager cacheManager;
+
     /**
      * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
      * @param mainClass The main class of your project
@@ -61,6 +65,7 @@ public class NitroLib {
 
         LogUtil.info("Loading handlers...");
         ConfigurationHandler configurationHandler = new ConfigurationHandler();
+        cacheManager = new CacheManager();
 
         InjectHandler.register(NitroOptions.class, options);
         InjectHandler injectHandler = new InjectHandler(mainClass);
@@ -83,6 +88,11 @@ public class NitroLib {
                 KeyValue.of("balance", 100.0)
         ));
         System.out.println(entity);*/
+
+        TestClass testClass = new TestClass();
+        LogUtil.info(testClass.test(5));
+        LogUtil.info(testClass.test(6));
+        LogUtil.info(testClass.test(5));
 
         LogUtil.info("NitroLib initialized!");
     }

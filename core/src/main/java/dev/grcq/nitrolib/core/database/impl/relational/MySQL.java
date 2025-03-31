@@ -66,8 +66,6 @@ public class MySQL implements RelationalDatabase {
         } catch (ClassNotFoundException | SQLException e) {
             LogUtil.handleException("Failed to connect to MySQL database", e);
         }
-
-
     }
 
     @Override

@@ -1,7 +1,6 @@
 package dev.grcq.nitrolib.bungee.parameters;
 
 import net.md_5.bungee.api.CommandSender;
-import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

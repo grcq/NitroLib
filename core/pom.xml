@@ -45,6 +45,7 @@
                     <transformerClasses>
                         <transformerClass>
                             <className>dev.grcq.nitrolib.core.bytecode.InjectTransformer</className>
+                            <className>dev.grcq.nitrolib.core.bytecode.CacheTransformer</className>
                         </transformerClass>
                     </transformerClasses>
                 </configuration>
