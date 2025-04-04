@@ -71,8 +71,6 @@ public class NitroLib {
         InjectHandler injectHandler = new InjectHandler(mainClass);
         injectHandler.inject();
 
-        TestClass.getInstance().test();
-
         configurationHandler.loadConfiguration(mainClass);
         LogUtil.info("Handlers loaded!");
 
@@ -90,11 +88,6 @@ public class NitroLib {
                 KeyValue.of("balance", 100.0)
         ));
         System.out.println(entity);*/
-
-        TestClass testClass = new TestClass();
-        LogUtil.info(testClass.test(5));
-        LogUtil.info(testClass.test(6));
-        LogUtil.info(testClass.test(5));
 
         LogUtil.info("NitroLib initialized!");
     }

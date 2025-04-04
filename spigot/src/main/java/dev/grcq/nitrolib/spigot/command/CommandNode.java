@@ -170,12 +170,12 @@ public class CommandNode {
         }
 
         LogUtil.debug("%s", Arrays.asList(args));
-        for (CommandNode node : children) {
-            List<String> names = Lists.newArrayList(node.name);
-            names.addAll(node.aliases);
+        List<String> argsList = Lists.newArrayList(args);
+        for (int i = args.length - 1; i >= 0; i--) {
+            for (CommandNode node : children) {
+                List<String> names = Lists.newArrayList(node.name);
+                names.addAll(node.aliases);
 
-            List<String> argsList = Lists.newArrayList(args);
-            for (int i = args.length - 1; i >= 0; i--) {
                 String arg = String.join(" ", argsList);
                 LogUtil.debug("%s %s", arg, names);
                 if (names.contains(label + " " + arg)) {
@@ -186,9 +186,9 @@ public class CommandNode {
                     node.execute(sender, label + " " + arg, newArgs);
                     return;
                 }
-
-                argsList.remove(i);
             }
+
+            argsList.remove(i);
         }
 
         List<Parameter> parameters = Lists.newArrayList(method.getParameters());
@@ -299,7 +299,7 @@ public class CommandNode {
             sender.sendMessage(ChatUtil.format("&c" + e.getClass().getName() + ": " + e.getMessage()));
         }
 
-        LogUtil.handleException("An error occurred while executing command " + name, e);
+        LogUtil.handleException("An error occurred while executing command '" + name + "'", e);
     }
 
     public List<String> tabComplete(CommandSender sender, String label, String[] args, int index) {
