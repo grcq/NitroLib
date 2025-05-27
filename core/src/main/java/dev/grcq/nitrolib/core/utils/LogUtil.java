@@ -32,9 +32,13 @@ public class LogUtil {
         error(message, -1);
     }
 
-    public static void error(Object message, int exit, Object... args) {
+    public static void error(Object message, Object... args) {
         System.out.println("\u001B[31m[ERROR] " + String.format(message.toString(), args) + "\u001B[0m");
-        if (exit >= 0) System.exit(exit);
+    }
+
+    public static void fatal(Object message, Object... args) {
+        System.out.println("\u001B[31m[ERROR] " + String.format(message.toString(), args) + "\u001B[0m");
+        System.exit(1);
     }
 
     public static void info(Object message, Object... args) {

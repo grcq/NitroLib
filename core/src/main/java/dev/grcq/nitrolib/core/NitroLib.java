@@ -8,23 +8,11 @@ import dev.grcq.nitrolib.core.cache.CacheManager;
 import dev.grcq.nitrolib.core.cli.options.OptionParser;
 import dev.grcq.nitrolib.core.cli.options.def.NitroOptions;
 import dev.grcq.nitrolib.core.config.ConfigurationHandler;
-import dev.grcq.nitrolib.core.database.Condition;
-import dev.grcq.nitrolib.core.database.RelationalDatabase;
-import dev.grcq.nitrolib.core.database.impl.relational.MySQL;
+import dev.grcq.nitrolib.core.events.EventBus;
 import dev.grcq.nitrolib.core.inject.InjectHandler;
-import dev.grcq.nitrolib.core.tests.database.TestEntity;
-import dev.grcq.nitrolib.core.utils.KeyValue;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import lombok.Getter;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
-
-import java.lang.management.ManagementFactory;
-import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
 
 public class NitroLib {
 
@@ -36,6 +24,8 @@ public class NitroLib {
 
     @Getter
     private static CacheManager cacheManager;
+    @Getter
+    private static EventBus globalEventBus;
 
     /**
      * Initializes NitroLib, no need to call this in your Minecraft plugin unless you want to use our options.
@@ -66,12 +56,11 @@ public class NitroLib {
         LogUtil.info("Loading handlers...");
         ConfigurationHandler configurationHandler = new ConfigurationHandler();
         cacheManager = new CacheManager();
+        globalEventBus = new EventBus();
 
         InjectHandler.register(NitroOptions.class, options);
         InjectHandler injectHandler = new InjectHandler(mainClass);
         injectHandler.inject();
-
-        TestClass.getInstance().test();
 
         configurationHandler.loadConfiguration(mainClass);
         LogUtil.info("Handlers loaded!");

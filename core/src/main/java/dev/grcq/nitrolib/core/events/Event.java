@@ -1,5 +1,9 @@
 package dev.grcq.nitrolib.core.events;
 
-public interface Event {
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+public interface Event {
+    @NotNull String getName();
+    @Nullable String getShortName();
 }
