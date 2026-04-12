@@ -23,6 +23,7 @@ public enum ServerVersion {
     V1_19(13),
     V1_20(14),
     V1_21(15),
+    V26_1(16),
     NOT_SUPPORTED(-1);
 
     @Getter
@@ -30,17 +31,22 @@ public enum ServerVersion {
 
     static {
         String nmsVersion = NMSUtil.getNMSVersion();
-        String[] split = nmsVersion.split("_");
-        ServerVersion current;
-        try {
-            current = ServerVersion.valueOf(split[0].toUpperCase() + "_" + split[1]);
-        } catch (IllegalArgumentException e) {
-            current = NOT_SUPPORTED;
-            LogUtil.error("Detected an unsupported version for NitroLib from your server: " + nmsVersion);
-            LogUtil.error("Either update NitroLib or downgrade your server to a supported version.");
-        }
+        if (nmsVersion != null) {
+            String[] split = nmsVersion.split("_");
+            ServerVersion current;
+            try {
+                current = ServerVersion.valueOf(split[0].toUpperCase() + "_" + split[1]);
+            } catch (IllegalArgumentException e) {
+                current = NOT_SUPPORTED;
+                LogUtil.error("Detected an unsupported version for NitroLib from your server: " + nmsVersion);
+                LogUtil.error("Either update NitroLib or downgrade your server to a supported version.");
+            }
 
-        currentVersion = current;
+            currentVersion = current;
+        } else {
+            // Assume the latest version as apparently the NMS version was removed from the package in some loaders
+            currentVersion = V1_21;
+        }
     }
 
     private final int version;

@@ -21,12 +21,11 @@ public class TestListener {
         board.show(player);
     }
 
-    @Schedule(async = true, period = 20)
-    public void updateBoard() {
+    public static void updateBoard() {
         board.update();
     }
 
-    @Command("add")
+    @Command({"add", "a"})
     public void add(Player player) {
         counter++;
         player.sendMessage("Updated counter: " + counter);

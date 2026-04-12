@@ -131,10 +131,10 @@ public class NitroCommandHandler {
             }
 
             COMMANDS.put(node.getName(), node);
-            for (String alias : node.getAliases()) {
+            /*for (String alias : node.getAliases()) {
                 if (COMMANDS.containsKey(alias)) LogUtil.warn("Command alias '%s' is already registered. This could lead to some issues, please change the name to prevent issues.", alias);
                 COMMANDS.put(alias, node);
-            }
+            }*/
 
             String name = node.getName();
             String[] split = name.split(" ");

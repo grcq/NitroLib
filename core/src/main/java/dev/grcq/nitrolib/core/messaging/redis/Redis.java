@@ -3,6 +3,7 @@ package dev.grcq.nitrolib.core.messaging.redis;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import dev.grcq.nitrolib.core.messaging.IPacket;
 import dev.grcq.nitrolib.core.messaging.MessagingClient;
 import dev.grcq.nitrolib.core.messaging.PacketListener;
@@ -76,27 +77,27 @@ public class Redis implements MessagingClient {
     }
 
     @Override
-    public IPacket get(IPacket packet) {
+    public JsonObject get(IPacket packet) {
         return null;
     }
 
     @Override
-    public IPacket getFrom(String channel, IPacket packet) {
+    public JsonObject getFrom(String channel, IPacket packet) {
         return null;
     }
 
     @Override
-    public void get(IPacket packet, Consumer<IPacket> callback) {
+    public void get(IPacket packet, Consumer<JsonObject> callback) {
         CompletableFuture.runAsync(() -> {
-            IPacket response = get(packet);
+            JsonObject response = get(packet);
             callback.accept(response);
         });
     }
 
     @Override
-    public void getFrom(String channel, IPacket packet, Consumer<IPacket> callback) {
+    public void getFrom(String channel, IPacket packet, Consumer<JsonObject> callback) {
         CompletableFuture.runAsync(() -> {
-            IPacket response = getFrom(channel, packet);
+            JsonObject response = getFrom(channel, packet);
             callback.accept(response);
         });
     }
@@ -124,7 +125,7 @@ public class Redis implements MessagingClient {
             public void onMessage(String channel, String message) {
                 if (!channel.equals(Redis.this.channel)) return;
 
-                IPacket packet = IPacket.deserialize(message);
+                JsonObject packet = JsonParser.parseString(message).getAsJsonObject();
                 for (PacketListener listener : Redis.this.listeners) {
                     handlePacket(listener, packet);
                 }

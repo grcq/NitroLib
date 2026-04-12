@@ -3,10 +3,12 @@ package dev.grcq.nitrolib.core.messaging.rabbitmq;
 import com.google.common.base.Preconditions;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
+import dev.grcq.nitrolib.core.Constants;
 import dev.grcq.nitrolib.core.messaging.IPacket;
 import dev.grcq.nitrolib.core.messaging.MessagingClient;
 import dev.grcq.nitrolib.core.messaging.Packet;
@@ -34,7 +36,7 @@ public class RabbitMQ implements MessagingClient {
     @Getter
     private String exchange;
 
-    private final ConcurrentHashMap<String, BlockingQueue<IPacket>> responseMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, BlockingQueue<JsonObject>> responseMap = new ConcurrentHashMap<>();
     private final List<PacketListener> listeners = new ArrayList<>();
 
     private ConnectionFactory factory;
@@ -184,17 +186,17 @@ public class RabbitMQ implements MessagingClient {
      * @return The response packet where `identifier` is the identifier of the packet and `payload` is the payload of the packet
      */
     @Override
-    public IPacket get(@NotNull IPacket packet) {
+    public JsonObject get(@NotNull IPacket packet) {
         return getFrom(this.exchange, packet);
     }
 
     @Override
-    public IPacket getFrom(String queue, IPacket packet) {
+    public JsonObject getFrom(String queue, IPacket packet) {
         Preconditions.checkNotNull(this.channel, "[RabbitMQ] Channel is not connected");
         Preconditions.checkNotNull(packet, "[RabbitMQ] Packet cannot be null");
 
         String correlationId = UUID.randomUUID().toString();
-        final BlockingQueue<IPacket> response = new ArrayBlockingQueue<>(1);
+        final BlockingQueue<JsonObject> response = new ArrayBlockingQueue<>(1);
         this.responseMap.put(correlationId, response);
         try {
             AMQP.BasicProperties properties = new AMQP.BasicProperties.Builder()
@@ -207,7 +209,7 @@ public class RabbitMQ implements MessagingClient {
             object.add("payload", packet.getPayload());
 
             this.channel.basicPublish("", queue, properties, object.toString().getBytes(StandardCharsets.UTF_8));
-            IPacket responsePacket = response.poll(5, TimeUnit.SECONDS);
+            JsonObject responsePacket = response.poll(5, TimeUnit.SECONDS);
             if (responsePacket == null) LogUtil.warn("[RabbitMQ] Failed to get response packet for %s", packet.getIdentifier());
 
             return responsePacket;
@@ -220,17 +222,17 @@ public class RabbitMQ implements MessagingClient {
     }
 
     @Override
-    public void get(IPacket packet, Consumer<IPacket> callback) {
+    public void get(IPacket packet, Consumer<JsonObject> callback) {
         CompletableFuture.runAsync(() -> {
-            IPacket response = get(packet);
+            JsonObject response = get(packet);
             callback.accept(response);
         });
     }
 
     @Override
-    public void getFrom(String queue, IPacket packet, Consumer<IPacket> callback) {
+    public void getFrom(String queue, IPacket packet, Consumer<JsonObject> callback) {
         CompletableFuture.runAsync(() -> {
-            IPacket response = getFrom(queue, packet);
+            JsonObject response = getFrom(queue, packet);
             callback.accept(response);
         });
     }
@@ -253,9 +255,9 @@ public class RabbitMQ implements MessagingClient {
         this.listener = new Thread(() -> {
             try {
                 this.channel.basicConsume(this.exchange, true, (consumerTag, delivery) -> {
-                    IPacket packet = null;
+                    JsonObject packet = null;
                     try {
-                        packet = IPacket.deserialize(new String(delivery.getBody(), StandardCharsets.UTF_8));
+                        packet = JsonParser.parseString(new String(delivery.getBody(), StandardCharsets.UTF_8)).getAsJsonObject();
                     } catch (Exception e) {
                         LogUtil.handleException("[RabbitMQ] Failed to deserialize packet", e);
                     }
@@ -263,9 +265,9 @@ public class RabbitMQ implements MessagingClient {
                     if (packet != null) {
                         String correlationId = delivery.getProperties().getCorrelationId();
                         if (correlationId != null && responseMap.containsKey(correlationId)) {
-                            BlockingQueue<IPacket> response = this.responseMap.get(correlationId);
+                            BlockingQueue<JsonObject> response = this.responseMap.get(correlationId);
                             if (response != null && !response.offer(packet)) {
-                                LogUtil.warn("[RabbitMQ] Failed to offer response packet for %s", packet.getIdentifier());
+                                LogUtil.warn("[RabbitMQ] Failed to offer response packet for %s", packet.get("identifier").getAsString());
                             }
                         } if (correlationId != null) {
                             // respond

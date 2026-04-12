@@ -41,7 +41,9 @@ public class NMSUtil {
     private static final boolean OPEN_WINDOW_PACKET_CONSTRUCTOR_NEW;
 
     static {
-        NMS_VERSION = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
+        String[] parts = Bukkit.getServer().getClass().getPackage().getName().split("\\.");
+        if (parts.length == 4) NMS_VERSION = parts[3];
+        else NMS_VERSION = null;
 
         CRAFT_PLAYER_CLASS = getOBCClass("entity.CraftPlayer");
         ENTITY_PLAYER_CLASS = getNMSClass("EntityPlayer");
@@ -100,8 +102,9 @@ public class NMSUtil {
 
     @Nullable
     public static Class<?> getOBCClass(String name) {
+        String toAppend = NMS_VERSION != null ? "." + NMS_VERSION : "";
         try {
-            return Class.forName("org.bukkit.craftbukkit." + NMS_VERSION + "." + name);
+            return Class.forName("org.bukkit.craftbukkit" + toAppend + "." + name);
         } catch (ClassNotFoundException e) {
             LogUtil.verbose("Failed to get OBC class " + name);
             return null;
@@ -110,8 +113,9 @@ public class NMSUtil {
 
     @Nullable
     public static Class<?> getNMSClass(String name) {
+        String toAppend = NMS_VERSION != null ? "." + NMS_VERSION : "";
         try {
-            return Class.forName("net.minecraft.server." + NMS_VERSION + "." + name);
+            return Class.forName("net.minecraft.server" + toAppend + "." + name);
         } catch (ClassNotFoundException e) {
             LogUtil.verbose("Failed to get NMS class " + name);
             return null;

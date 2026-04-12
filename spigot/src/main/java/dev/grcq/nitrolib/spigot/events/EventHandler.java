@@ -69,7 +69,7 @@ public class EventHandler {
 
         Class<? extends org.bukkit.event.Event> finalEventClass = (Class<? extends org.bukkit.event.Event>) eventClass;
         pluginManager.registerEvent(finalEventClass, listener, event.priority(), (listener, e) -> {
-            if (e == null || finalInstance == null) return;
+            if (e == null || (finalInstance == null && !Modifier.isStatic(method.getModifiers()))) return;
             if (e instanceof Cancellable && !event.ignoreCancelled()) {
                 Cancellable cancellable = (Cancellable) e;
                 if (cancellable.isCancelled()) return;

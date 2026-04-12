@@ -13,6 +13,7 @@
         <module>spigot</module>
         <module>bungee</module>
         <module>discord</module>
+        <module>velocity</module>
     </modules>
 
     <properties>
@@ -104,18 +105,18 @@
         </dependency>
         <dependency>
             <groupId>org.mongodb</groupId>
-            <artifactId>mongo-java-driver</artifactId>
-            <version>3.12.14</version>
+            <artifactId>mongodb-driver-sync</artifactId>
+            <version>5.6.1</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
-            <version>3.8.1</version>
+            <version>3.14.0</version>
         </dependency>
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.29</version>
+            <version>8.0.33</version>
         </dependency>
     </dependencies>
 

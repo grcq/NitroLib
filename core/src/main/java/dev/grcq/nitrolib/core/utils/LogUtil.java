@@ -19,17 +19,13 @@ public class LogUtil {
     }
 
     public static void handleException(Object message, Exception e, int length, Object ...args) {
-        error(message, -1, args);
+        error(message, args);
         error(e.getClass().getName() + ": " + e.getMessage());
         length = Math.min(length, e.getStackTrace().length);
         for (int i = 0; i < length; i++) {
             StackTraceElement element = e.getStackTrace()[i];
-            error("    at %s.%s(%s:%d)", -1, element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber());
+            error("    at %s.%s(%s:%s)", element.getClassName(), element.getMethodName(), element.getFileName(), element.getLineNumber());
         }
-    }
-
-    public static void error(Object message) {
-        error(message, -1);
     }
 
     public static void error(Object message, Object... args) {
@@ -37,7 +33,7 @@ public class LogUtil {
     }
 
     public static void fatal(Object message, Object... args) {
-        System.out.println("\u001B[31m[ERROR] " + String.format(message.toString(), args) + "\u001B[0m");
+        System.out.println("\u001B[31m[FATAL] " + String.format(message.toString(), args) + "\u001B[0m");
         System.exit(1);
     }
 

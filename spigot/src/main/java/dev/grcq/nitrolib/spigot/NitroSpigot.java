@@ -3,11 +3,15 @@ package dev.grcq.nitrolib.spigot;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.google.common.collect.Lists;
+import com.mongodb.event.CommandListener;
 import dev.grcq.nitrolib.core.NitroLib;
 import dev.grcq.nitrolib.core.serialization.FileDeserializer;
 import dev.grcq.nitrolib.core.serialization.FileSerializer;
 import dev.grcq.nitrolib.core.utils.LogUtil;
 import dev.grcq.nitrolib.core.utils.Util;
+import dev.grcq.nitrolib.spigot.chat.ChatListener;
+import dev.grcq.nitrolib.spigot.gui.GUIListener;
+import dev.grcq.nitrolib.spigot.npc.NPCListener;
 import dev.grcq.nitrolib.spigot.schedulers.Schedule;
 import dev.grcq.nitrolib.spigot.events.EventHandler;
 import dev.grcq.nitrolib.spigot.hologram.Hologram;
@@ -113,9 +117,12 @@ public class NitroSpigot {
             }
         }
 
-        List<String> argsList = Lists.newArrayList(args);
-        if (config.isDebugMode()) argsList.add("-d");
-        if (initCore) NitroLib.init(mainClass, argsList.toArray(new String[0]));
+        if (initCore) {
+            List<String> argsList = Lists.newArrayList(args);
+            if (config.isDebugMode()) argsList.add("-d");
+
+            NitroLib.init(mainClass, argsList.toArray(new String[0]));
+        }
 
         LogUtil.info("Initialising NitroLib for Spigot...");
 
@@ -123,7 +130,9 @@ public class NitroSpigot {
         Hologram.init(source);
         this.initSchedulers();
 
-        EventHandler.registerAll(getClass(), source);
+        EventHandler.register(ChatListener.class, source);
+        EventHandler.register(GUIListener.class, source);
+        EventHandler.register(NPCListener.class, source);
 
         LogUtil.info("NitroLib has been successfully initialised for Spigot.");
     }
